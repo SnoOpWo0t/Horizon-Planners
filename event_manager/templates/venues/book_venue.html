@@ -1,0 +1,471 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book {{ venue.name }} - EventEase{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-calendar-check me-2"></i>Book {{ venue.name }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Event Details -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Event Details</h5>
+                            </div>
+                            
+                            <div class="col-md-8 mb-3">
+                                <label for="event_title" class="form-label">Event Title *</label>
+                                <input type="text" class="form-control" id="event_title" name="event_title" required 
+                                       placeholder="What's the name of your event?">
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="event_type" class="form-label">Event Type *</label>
+                                <select class="form-select" id="event_type" name="event_type" required>
+                                    <option value="">Select type</option>
+                                    <option value="conference">Conference</option>
+                                    <option value="wedding">Wedding</option>
+                                    <option value="corporate">Corporate Event</option>
+                                    <option value="party">Private Party</option>
+                                    <option value="seminar">Seminar/Workshop</option>
+                                    <option value="exhibition">Exhibition</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="event_description" class="form-label">Event Description</label>
+                                <textarea class="form-control" id="event_description" name="event_description" rows="3" 
+                                          placeholder="Brief description of your event (optional)"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Date & Time Selection -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Date & Time</h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="start_date" class="form-label">Start Date *</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="end_date" class="form-label">End Date *</label>
+                                <input type="date" class="form-control" id="end_date" name="end_date" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="start_time" class="form-label">Start Time *</label>
+                                <input type="time" class="form-control" id="start_time" name="start_time" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="end_time" class="form-label">End Time *</label>
+                                <input type="time" class="form-control" id="end_time" name="end_time" required>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Availability:</strong> We'll check availability for your selected dates and get back to you within 24 hours.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Guest Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Guest Information</h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="expected_guests" class="form-label">Expected Number of Guests *</label>
+                                <input type="number" class="form-control" id="expected_guests" name="expected_guests" 
+                                       min="1" max="{{ venue.capacity }}" required>
+                                <div class="form-text">Maximum capacity: {{ venue.capacity }} guests</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="guest_type" class="form-label">Guest Type</label>
+                                <select class="form-select" id="guest_type" name="guest_type">
+                                    <option value="adults">Adults Only</option>
+                                    <option value="mixed">Adults and Children</option>
+                                    <option value="family">Family Event</option>
+                                    <option value="corporate">Corporate Guests</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Special Requirements -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Special Requirements</h5>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label class="form-label">Additional Services Needed</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" id="catering" name="services" value="catering">
+                                            <label class="form-check-label" for="catering">
+                                                Catering Services
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" id="av_equipment" name="services" value="av_equipment">
+                                            <label class="form-check-label" for="av_equipment">
+                                                A/V Equipment
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" id="decoration" name="services" value="decoration">
+                                            <label class="form-check-label" for="decoration">
+                                                Decoration Services
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" id="photography" name="services" value="photography">
+                                            <label class="form-check-label" for="photography">
+                                                Photography/Videography
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" id="security" name="services" value="security">
+                                            <label class="form-check-label" for="security">
+                                                Security Services
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" id="parking" name="services" value="parking">
+                                            <label class="form-check-label" for="parking">
+                                                Parking Assistance
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="special_requests" class="form-label">Special Requests or Notes</label>
+                                <textarea class="form-control" id="special_requests" name="special_requests" rows="4" 
+                                          placeholder="Any special requirements, dietary restrictions, accessibility needs, or other important details..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Contact Information</h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_name" class="form-label">Primary Contact Name *</label>
+                                <input type="text" class="form-control" id="contact_name" name="contact_name" 
+                                       value="{{ user.get_full_name }}" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_email" class="form-label">Contact Email *</label>
+                                <input type="email" class="form-control" id="contact_email" name="contact_email" 
+                                       value="{{ user.email }}" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_phone" class="form-label">Contact Phone *</label>
+                                <input type="tel" class="form-control" id="contact_phone" name="contact_phone" required 
+                                       placeholder="+1 (555) 123-4567">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="organization" class="form-label">Organization (if applicable)</label>
+                                <input type="text" class="form-control" id="organization" name="organization" 
+                                       placeholder="Company or organization name">
+                            </div>
+                        </div>
+
+                        <!-- Terms and Submit -->
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="terms_accepted" name="terms_accepted" required>
+                                    <label class="form-check-label" for="terms_accepted">
+                                        I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a> 
+                                        and <a href="#" data-bs-toggle="modal" data-bs-target="#cancellationModal">Cancellation Policy</a> *
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'venues:venue_detail' venue.slug %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Back to Venue
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-paper-plane me-2"></i>Submit Booking Request
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Venue Summary -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Booking Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        {% if venue.images.first %}
+                            <img src="{{ venue.images.first.image.url }}" 
+                                 class="rounded me-3" 
+                                 style="width: 60px; height: 60px; object-fit: cover;">
+                        {% endif %}
+                        <div>
+                            <h6 class="mb-1">{{ venue.name }}</h6>
+                            <small class="text-muted">{{ venue.address|truncatechars:30 }}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="border-top pt-3">
+                        <div class="row text-center">
+                            <div class="col-6 border-end">
+                                <strong>{{ venue.capacity }}</strong><br>
+                                <small class="text-muted">Max Capacity</small>
+                            </div>
+                            <div class="col-6">
+                                <strong>${{ venue.hourly_rate }}</strong><br>
+                                <small class="text-muted">Per Hour</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-top pt-3 mt-3">
+                        <h6>Included Features:</h6>
+                        {% if venue.features %}
+                            <ul class="list-unstyled small">
+                                {% for feature in venue.get_features_list|slice:":5" %}
+                                    <li><i class="fas fa-check text-success me-2"></i>{{ feature }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost Estimator -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Cost Estimator</h5>
+                </div>
+                <div class="card-body">
+                    <div id="cost-breakdown">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Venue Rental:</span>
+                            <span id="venue-cost">$0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Additional Services:</span>
+                            <span id="services-cost">$0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Platform Fee (5%):</span>
+                            <span id="platform-fee">$0</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Estimated Total:</span>
+                            <span id="total-cost">$0</span>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            This is an estimate. Final pricing will be confirmed by the venue manager.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Venue -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Need Help?</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">Questions about this venue? Contact the venue manager directly.</p>
+                    
+                    {% if venue.contact_email %}
+                        <div class="mb-2">
+                            <i class="fas fa-envelope text-primary me-2"></i>
+                            <a href="mailto:{{ venue.contact_email }}">{{ venue.contact_email }}</a>
+                        </div>
+                    {% endif %}
+                    
+                    {% if venue.contact_phone %}
+                        <div class="mb-2">
+                            <i class="fas fa-phone text-primary me-2"></i>
+                            <a href="tel:{{ venue.contact_phone }}">{{ venue.contact_phone }}</a>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            Response time: Usually within 2-4 hours
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Booking Terms</h6>
+                <p>By submitting a booking request, you agree to the following terms...</p>
+                <!-- Add actual terms content here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancellation Policy Modal -->
+<div class="modal fade" id="cancellationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancellation Policy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Cancellation Policy</h6>
+                <p>Please review our cancellation policy...</p>
+                <!-- Add actual cancellation policy content here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set minimum date to today
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('start_date').min = today;
+document.getElementById('end_date').min = today;
+
+// Update end date minimum when start date changes
+document.getElementById('start_date').addEventListener('change', function(e) {
+    document.getElementById('end_date').min = e.target.value;
+    calculateCost();
+});
+
+document.getElementById('end_date').addEventListener('change', calculateCost);
+document.getElementById('start_time').addEventListener('change', calculateCost);
+document.getElementById('end_time').addEventListener('change', calculateCost);
+
+// Service checkboxes
+document.querySelectorAll('input[name="services"]').forEach(checkbox => {
+    checkbox.addEventListener('change', calculateCost);
+});
+
+function calculateCost() {
+    const startDate = document.getElementById('start_date').value;
+    const endDate = document.getElementById('end_date').value;
+    const startTime = document.getElementById('start_time').value;
+    const endTime = document.getElementById('end_time').value;
+    
+    if (!startDate || !endDate || !startTime || !endTime) {
+        return;
+    }
+    
+    // Calculate hours
+    const start = new Date(`${startDate}T${startTime}`);
+    const end = new Date(`${endDate}T${endTime}`);
+    const hours = Math.ceil((end - start) / (1000 * 60 * 60));
+    
+    if (hours <= 0) {
+        return;
+    }
+    
+    const hourlyRate = {{ venue.hourly_rate|default:0 }};
+    let venueCost = hours * hourlyRate;
+    
+    // Calculate additional services cost
+    let servicesCost = 0;
+    document.querySelectorAll('input[name="services"]:checked').forEach(service => {
+        switch(service.value) {
+            case 'catering': servicesCost += 500; break;
+            case 'av_equipment': servicesCost += 200; break;
+            case 'decoration': servicesCost += 300; break;
+            case 'photography': servicesCost += 400; break;
+            case 'security': servicesCost += 150; break;
+            case 'parking': servicesCost += 100; break;
+        }
+    });
+    
+    const subtotal = venueCost + servicesCost;
+    const platformFee = subtotal * 0.05; // 5% platform fee
+    const total = subtotal + platformFee;
+    
+    // Update display
+    document.getElementById('venue-cost').textContent = '$' + venueCost.toLocaleString();
+    document.getElementById('services-cost').textContent = '$' + servicesCost.toLocaleString();
+    document.getElementById('platform-fee').textContent = '$' + platformFee.toFixed(2);
+    document.getElementById('total-cost').textContent = '$' + total.toLocaleString();
+}
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const expectedGuests = document.getElementById('expected_guests').value;
+    const capacity = {{ venue.capacity }};
+    
+    if (parseInt(expectedGuests) > capacity) {
+        e.preventDefault();
+        alert(`Expected guests (${expectedGuests}) cannot exceed venue capacity (${capacity}).`);
+        document.getElementById('expected_guests').focus();
+        return false;
+    }
+    
+    const startDate = document.getElementById('start_date').value;
+    const endDate = document.getElementById('end_date').value;
+    const startTime = document.getElementById('start_time').value;
+    const endTime = document.getElementById('end_time').value;
+    
+    const start = new Date(`${startDate}T${startTime}`);
+    const end = new Date(`${endDate}T${endTime}`);
+    
+    if (end <= start) {
+        e.preventDefault();
+        alert('End date and time must be after start date and time.');
+        return false;
+    }
+});
+</script>
+{% endblock %}

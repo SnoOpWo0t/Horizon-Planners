@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add New Venue - EventEase{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-building me-2"></i>Add New Venue
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Venue Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="capacity" class="form-label">Capacity *</label>
+                                <input type="number" class="form-control" id="capacity" name="capacity" min="1" required>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="description" class="form-label">Description *</label>
+                                <textarea class="form-control" id="description" name="description" rows="4" required placeholder="Describe your venue, its unique features, and what makes it special..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Location Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Location</h5>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="address" class="form-label">Street Address *</label>
+                                <textarea class="form-control" id="address" name="address" rows="2" required placeholder="Street address"></textarea>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="city" class="form-label">City *</label>
+                                <input type="text" class="form-control" id="city" name="city" required>
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="state" class="form-label">State *</label>
+                                <input type="text" class="form-control" id="state" name="state" required>
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="postal_code" class="form-label">Zip Code *</label>
+                                <input type="text" class="form-control" id="postal_code" name="postal_code" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="country" class="form-label">Country *</label>
+                                <input type="text" class="form-control" id="country" name="country" value="USA" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="area_sqft" class="form-label">Area (sq ft)</label>
+                                <input type="number" class="form-control" id="area_sqft" name="area_sqft" min="0" placeholder="Optional">
+                            </div>
+                        </div>
+
+                        <!-- Pricing -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Pricing</h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="hourly_rate" class="form-label">Hourly Rate ($) *</label>
+                                <input type="number" class="form-control" id="hourly_rate" name="hourly_rate" min="0" step="0.01" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="daily_rate" class="form-label">Daily Rate ($)</label>
+                                <input type="number" class="form-control" id="daily_rate" name="daily_rate" min="0" step="0.01" placeholder="Optional">
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Contact Information</h5>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="contact_person" class="form-label">Contact Person *</label>
+                                <input type="text" class="form-control" id="contact_person" name="contact_person" required placeholder="Full name">
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="contact_email" class="form-label">Contact Email *</label>
+                                <input type="email" class="form-control" id="contact_email" name="contact_email" required placeholder="venue@example.com">
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="contact_phone" class="form-label">Contact Phone *</label>
+                                <input type="tel" class="form-control" id="contact_phone" name="contact_phone" required placeholder="+1 (555) 123-4567">
+                            </div>
+                        </div>
+
+                        <!-- Features & Amenities -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Features & Amenities</h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="has_parking" name="has_parking" value="true">
+                                    <label class="form-check-label" for="has_parking">
+                                        <i class="fas fa-parking me-2"></i>Parking Available
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="has_wifi" name="has_wifi" value="true">
+                                    <label class="form-check-label" for="has_wifi">
+                                        <i class="fas fa-wifi me-2"></i>WiFi Available
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="has_catering" name="has_catering" value="true">
+                                    <label class="form-check-label" for="has_catering">
+                                        <i class="fas fa-utensils me-2"></i>Catering Available
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="has_av_equipment" name="has_av_equipment" value="true">
+                                    <label class="form-check-label" for="has_av_equipment">
+                                        <i class="fas fa-microphone me-2"></i>A/V Equipment
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="has_accessibility" name="has_accessibility" value="true">
+                                    <label class="form-check-label" for="has_accessibility">
+                                        <i class="fas fa-wheelchair me-2"></i>Wheelchair Accessible
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Venue Images -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Images</h5>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="images" class="form-label">Venue Images</label>
+                                <input type="file" class="form-control" id="images" name="images" multiple accept="image/*">
+                                <div class="form-text">Upload multiple images to showcase your venue (max 10 images)</div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div id="imagePreview" class="row"></div>
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Status</h5>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                    <label class="form-check-label" for="is_active">
+                                        Active (Allow bookings for this venue)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="row">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'venues:manager_dashboard' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Create Venue
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Image preview functionality
+document.getElementById('images').addEventListener('change', function(e) {
+    const previewContainer = document.getElementById('imagePreview');
+    previewContainer.innerHTML = '';
+    
+    const files = Array.from(e.target.files);
+    
+    if (files.length > 10) {
+        alert('Maximum 10 images allowed');
+        e.target.value = '';
+        return;
+    }
+    
+    files.forEach((file, index) => {
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement('div');
+                col.className = 'col-md-3 mb-3';
+                col.innerHTML = `
+                    <div class="card">
+                        <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                        <div class="card-body p-2 text-center">
+                            <small class="text-muted">Image ${index + 1}</small>
+                        </div>
+                    </div>
+                `;
+                previewContainer.appendChild(col);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+
+// Auto-calculate daily rate
+document.getElementById('hourly_rate').addEventListener('input', function(e) {
+    const hourlyRate = parseFloat(e.target.value) || 0;
+    const dailyRate = hourlyRate * 8; // 8 hours = 1 day
+    document.getElementById('daily_rate').placeholder = `Suggested: $${dailyRate.toFixed(2)}`;
+});
+</script>
+{% endblock %}

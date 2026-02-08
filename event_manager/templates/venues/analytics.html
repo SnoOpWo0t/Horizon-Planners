@@ -1,0 +1,484 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Venue Analytics - Horizon Planner{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/venues.css' %}">
+<style>
+    .analytics-hero {
+        background: linear-gradient(135deg, #6f42c1 0%, #007bff 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s;
+        height: 100%;
+    }
+    .stats-card:hover {
+        transform: translateY(-2px);
+    }
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+    .revenue-card {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .table-responsive {
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+    .progress-custom {
+        height: 10px;
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Analytics Hero Section -->
+<div class="analytics-hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-5 mb-3">Venue Analytics Dashboard</h1>
+                <p class="lead mb-0">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Track your venue performance, bookings, and revenue
+                </p>
+            </div>
+            <div class="col-lg-4 text-end">
+                <div class="dropdown">
+                    <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-calendar me-2"></i>Last 30 Days
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" data-period="7">Last 7 Days</a></li>
+                        <li><a class="dropdown-item" href="#" data-period="30">Last 30 Days</a></li>
+                        <li><a class="dropdown-item" href="#" data-period="90">Last 3 Months</a></li>
+                        <li><a class="dropdown-item" href="#" data-period="365">Last Year</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Key Performance Indicators -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card text-center">
+                <div class="stat-icon text-primary">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h3 class="mb-2" id="totalBookings">{{ total_bookings|default:0 }}</h3>
+                <p class="text-muted mb-1">Total Bookings</p>
+                <small class="text-success">
+                    <i class="fas fa-arrow-up me-1"></i>+12% from last month
+                </small>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card text-center">
+                <div class="stat-icon text-success">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <h3 class="mb-2" id="totalRevenue">${{ total_revenue|default:0|floatformat:2 }}</h3>
+                <p class="text-muted mb-1">Total Revenue</p>
+                <small class="text-success">
+                    <i class="fas fa-arrow-up me-1"></i>+8% from last month
+                </small>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card text-center">
+                <div class="stat-icon text-info">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="mb-2" id="totalGuests">{{ total_guests|default:0 }}</h3>
+                <p class="text-muted mb-1">Total Guests Hosted</p>
+                <small class="text-success">
+                    <i class="fas fa-arrow-up me-1"></i>+15% from last month
+                </small>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card text-center">
+                <div class="stat-icon text-warning">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3 class="mb-2" id="averageRating">{{ average_rating|default:0|floatformat:1 }}</h3>
+                <p class="text-muted mb-1">Average Rating</p>
+                <small class="text-success">
+                    <i class="fas fa-arrow-up me-1"></i>+0.2 from last month
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Revenue Overview -->
+        <div class="col-lg-8">
+            <div class="chart-container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chart-area me-2 text-primary"></i>Revenue Overview
+                    </h4>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <input type="radio" class="btn-check" name="revenueChart" id="daily" checked>
+                        <label class="btn btn-outline-primary" for="daily">Daily</label>
+                        
+                        <input type="radio" class="btn-check" name="revenueChart" id="weekly">
+                        <label class="btn btn-outline-primary" for="weekly">Weekly</label>
+                        
+                        <input type="radio" class="btn-check" name="revenueChart" id="monthly">
+                        <label class="btn btn-outline-primary" for="monthly">Monthly</label>
+                    </div>
+                </div>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Venue Utilization -->
+        <div class="col-lg-4">
+            <div class="stats-card">
+                <h5 class="mb-4">
+                    <i class="fas fa-percentage me-2 text-info"></i>Venue Utilization
+                </h5>
+                
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>This Month</span>
+                        <strong>{{ utilization_percentage|default:75 }}%</strong>
+                    </div>
+                    <div class="progress progress-custom">
+                        <div class="progress-bar bg-success" style="width: {{ utilization_percentage|default:75 }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Weekdays</span>
+                        <strong>{{ weekday_utilization|default:65 }}%</strong>
+                    </div>
+                    <div class="progress progress-custom">
+                        <div class="progress-bar bg-primary" style="width: {{ weekday_utilization|default:65 }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Weekends</span>
+                        <strong>{{ weekend_utilization|default:85 }}%</strong>
+                    </div>
+                    <div class="progress progress-custom">
+                        <div class="progress-bar bg-warning" style="width: {{ weekend_utilization|default:85 }}%"></div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <small class="text-muted">Peak season: December-January</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Booking Trends -->
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <h5 class="mb-4">
+                    <i class="fas fa-chart-line me-2 text-success"></i>Booking Trends
+                </h5>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="bookingTrendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Types Distribution -->
+        <div class="col-lg-6">
+            <div class="chart-container">
+                <h5 class="mb-4">
+                    <i class="fas fa-chart-pie me-2 text-warning"></i>Event Types
+                </h5>
+                <div style="height: 250px; position: relative;">
+                    <canvas id="eventTypesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="row">
+        <div class="col-12">
+            <div class="chart-container">
+                <h5 class="mb-4">
+                    <i class="fas fa-list me-2 text-primary"></i>Recent Bookings
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Event</th>
+                                <th>Date</th>
+                                <th>Duration</th>
+                                <th>Guests</th>
+                                <th>Revenue</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in recent_bookings %}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <strong>{{ booking.event_title|default:"Private Event" }}</strong>
+                                            <br><small class="text-muted">{{ booking.organizer_name|default:"John Doe" }}</small>
+                                        </div>
+                                    </td>
+                                    <td>{{ booking.event_date|default:"2024-12-15"|date:"M d, Y" }}</td>
+                                    <td>{{ booking.duration|default:"4" }} hours</td>
+                                    <td>{{ booking.guest_count|default:"150" }}</td>
+                                    <td><strong>${{ booking.revenue|default:"1200"|floatformat:2 }}</strong></td>
+                                    <td>
+                                        <span class="badge bg-{{ booking.status|default:"success" }}">
+                                            {{ booking.status_display|default:"Confirmed" }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <div class="text-muted">
+                                            <i class="fas fa-calendar-times fa-2x mb-3"></i>
+                                            <h6>No Recent Bookings</h6>
+                                            <p>Bookings will appear here once your venues start receiving reservations.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if recent_bookings|length > 5 %}
+                    <div class="text-center mt-3">
+                        <a href="#" class="btn btn-outline-primary">View All Bookings</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Breakdown -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="chart-container">
+                <h5 class="mb-4">
+                    <i class="fas fa-money-bill-wave me-2 text-success"></i>Revenue Breakdown
+                </h5>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-primary mb-1">${{ venue_rental|default:8500|floatformat:0 }}</h4>
+                            <small class="text-muted">Venue Rental</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-success mb-1">${{ catering_revenue|default:3200|floatformat:0 }}</h4>
+                            <small class="text-muted">Catering</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-warning mb-1">${{ av_equipment|default:450|floatformat:0 }}</h4>
+                            <small class="text-muted">A/V Equipment</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-info mb-1">${{ extras|default:280|floatformat:0 }}</h4>
+                            <small class="text-muted">Extras</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="revenue-card">
+                <h5 class="mb-3">
+                    <i class="fas fa-trophy me-2"></i>Performance Goals
+                </h5>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Monthly Target</span>
+                        <span>{{ monthly_progress|default:78 }}%</span>
+                    </div>
+                    <div class="progress progress-custom bg-light mt-2">
+                        <div class="progress-bar bg-white" style="width: {{ monthly_progress|default:78 }}%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span>Quarterly Target</span>
+                        <span>{{ quarterly_progress|default:65 }}%</span>
+                    </div>
+                    <div class="progress progress-custom bg-light mt-2">
+                        <div class="progress-bar bg-white" style="width: {{ quarterly_progress|default:65 }}%"></div>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                    <h4>${{ projected_monthly|default:15000|floatformat:0 }}</h4>
+                    <small>Projected This Month</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [{
+                label: 'Revenue ($)',
+                data: [2500, 3200, 2800, 4100, 3800, 4500, 5200, 4800, 5500, 6200, 5800, 6500],
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Booking Trends Chart
+    const bookingTrendsCtx = document.getElementById('bookingTrendsChart').getContext('2d');
+    const bookingTrendsChart = new Chart(bookingTrendsCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Bookings',
+                data: [3, 2, 4, 6, 5, 12, 8],
+                backgroundColor: [
+                    '#28a745', '#17a2b8', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#20c997'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Event Types Chart
+    const eventTypesCtx = document.getElementById('eventTypesChart').getContext('2d');
+    const eventTypesChart = new Chart(eventTypesCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Weddings', 'Corporate', 'Conferences', 'Parties', 'Other'],
+            datasets: [{
+                data: [35, 25, 20, 15, 5],
+                backgroundColor: [
+                    '#ff6b6b',
+                    '#4ecdc4',
+                    '#45b7d1',
+                    '#f9ca24',
+                    '#6c5ce7'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Period selector functionality
+    document.querySelectorAll('[data-period]').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const period = this.dataset.period;
+            updateChartsForPeriod(period);
+        });
+    });
+
+    function updateChartsForPeriod(period) {
+        // In real implementation, this would fetch data from backend
+        console.log('Updating charts for period:', period);
+        // Update button text
+        document.querySelector('.dropdown-toggle').innerHTML = 
+            `<i class="fas fa-calendar me-2"></i>Last ${period} Days`;
+    }
+
+    // Auto-refresh data every 5 minutes
+    setInterval(function() {
+        // In real implementation, this would fetch updated data
+        console.log('Refreshing analytics data...');
+    }, 300000);
+</script>
+{% endblock %}

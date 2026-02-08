@@ -1,0 +1,489 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Event Analytics - EventEase{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-chart-line me-2"></i>Event Analytics</h2>
+                <div class="d-flex gap-2">
+                    <select class="form-select" id="eventFilter" style="width: auto;">
+                        <option value="all">All Events</option>
+                        {% for event in user_events %}
+                            <option value="{{ event.id }}">{{ event.title|truncatechars:30 }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-outline-success" id="exportData">
+                        <i class="fas fa-download me-2"></i>Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overview Stats -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_events|default:0 }}</h4>
+                            <p class="card-text">Total Events</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-alt fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_attendees|default:0 }}</h4>
+                            <p class="card-text">Total Attendees</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">${{ total_revenue|default:0|floatformat:0 }}</h4>
+                            <p class="card-text">Total Revenue</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-dollar-sign fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ avg_rating|default:0|floatformat:1 }}</h4>
+                            <p class="card-text">Average Rating</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-star fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Revenue Over Time -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Revenue Over Time</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ticket Sales -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Ticket Sales Trends</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="ticketSalesChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Performance -->
+    <div class="row mb-4">
+        <!-- Top Performing Events -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Event Performance</h5>
+                </div>
+                <div class="card-body">
+                    {% if events_data %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Date</th>
+                                        <th>Tickets Sold</th>
+                                        <th>Capacity</th>
+                                        <th>Fill Rate</th>
+                                        <th>Revenue</th>
+                                        <th>Avg Rating</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in events_data %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if event.image %}
+                                                        <img src="{{ event.image.url }}" 
+                                                             class="rounded me-2" 
+                                                             style="width: 40px; height: 40px; object-fit: cover;">
+                                                    {% endif %}
+                                                    <div>
+                                                        <strong>{{ event.title|truncatechars:25 }}</strong><br>
+                                                        <small class="text-muted">{{ event.venue.name|truncatechars:20 }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <strong>{{ event.start_date|date:"M d, Y" }}</strong><br>
+                                                <small class="text-muted">{{ event.start_date|date:"g:i A" }}</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary">{{ event.tickets_sold|default:0 }}</span>
+                                            </td>
+                                            <td>{{ event.max_capacity }}</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="progress me-2" style="width: 60px; height: 6px;">
+                                                        <div class="progress-bar" style="width: {{ event.fill_rate }}%"></div>
+                                                    </div>
+                                                    <small>{{ event.fill_rate|floatformat:0 }}%</small>
+                                                </div>
+                                            </td>
+                                            <td class="text-success fw-bold">${{ event.revenue|default:0|floatformat:0 }}</td>
+                                            <td>
+                                                <div class="text-warning small">
+                                                    {% for i in "12345"|make_list %}
+                                                        <i class="fas fa-star{% if forloop.counter > event.avg_rating %} text-muted{% endif %}"></i>
+                                                    {% endfor %}
+                                                    <small class="text-muted">({{ event.review_count }})</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'events:event_detail_analytics' event.slug %}" 
+                                                       class="btn btn-outline-primary btn-sm" title="Detailed Analytics">
+                                                        <i class="fas fa-chart-bar"></i>
+                                                    </a>
+                                                    <a href="{% url 'events:event_detail' event.slug %}" 
+                                                       class="btn btn-outline-secondary btn-sm" title="View Event">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-chart-bar text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3 text-muted">No Event Data</h5>
+                            <p class="text-muted">Create some events to see analytics data.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Insights -->
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">Key Insights</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-primary">Best Performing Event</h6>
+                        {% if best_event %}
+                            <p class="mb-1"><strong>{{ best_event.title|truncatechars:25 }}</strong></p>
+                            <small class="text-muted">{{ best_event.tickets_sold }} tickets sold, ${{ best_event.revenue|floatformat:0 }} revenue</small>
+                        {% else %}
+                            <p class="text-muted">No events yet</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-success">Most Popular Category</h6>
+                        {% if popular_category %}
+                            <p class="mb-1"><strong>{{ popular_category.name }}</strong></p>
+                            <small class="text-muted">{{ popular_category.event_count }} events</small>
+                        {% else %}
+                            <p class="text-muted">No categories yet</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-info">Peak Season</h6>
+                        <p class="mb-1"><strong>{{ peak_month|default:"N/A" }}</strong></p>
+                        <small class="text-muted">Highest event activity</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">This Month's Summary</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 border-end">
+                            <h4 class="text-primary">{{ monthly_events|default:0 }}</h4>
+                            <small class="text-muted">New Events</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">{{ monthly_attendees|default:0 }}</h4>
+                            <small class="text-muted">Attendees</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-12">
+                            <h4 class="text-warning">${{ monthly_revenue|default:0|floatformat:0 }}</h4>
+                            <small class="text-muted">Monthly Revenue</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h6>Revenue Trend</h6>
+                        <canvas id="monthlyTrendChart" height="100"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Patterns -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Event Categories Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Attendance by Day of Week</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="weekdayChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Sample data - in real implementation, this would come from the backend
+const analyticsData = {
+    revenue: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        data: [2000, 3500, 2800, 4200, 3800, 5100]
+    },
+    ticketSales: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        data: [50, 75, 65, 95, 85, 110]
+    },
+    categories: {
+        labels: ['Music', 'Technology', 'Business', 'Sports', 'Arts'],
+        data: [40, 25, 20, 10, 5]
+    },
+    weekdays: {
+        labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+        data: [15, 20, 25, 30, 45, 85, 60]
+    }
+};
+
+// Revenue Chart
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+const revenueChart = new Chart(revenueCtx, {
+    type: 'line',
+    data: {
+        labels: analyticsData.revenue.labels,
+        datasets: [{
+            label: 'Revenue ($)',
+            data: analyticsData.revenue.data,
+            borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '$' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Ticket Sales Chart
+const ticketSalesCtx = document.getElementById('ticketSalesChart').getContext('2d');
+const ticketSalesChart = new Chart(ticketSalesCtx, {
+    type: 'bar',
+    data: {
+        labels: analyticsData.ticketSales.labels,
+        datasets: [{
+            label: 'Tickets Sold',
+            data: analyticsData.ticketSales.data,
+            backgroundColor: 'rgba(75, 192, 192, 0.8)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Category Chart
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+const categoryChart = new Chart(categoryCtx, {
+    type: 'doughnut',
+    data: {
+        labels: analyticsData.categories.labels,
+        datasets: [{
+            data: analyticsData.categories.data,
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 206, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(153, 102, 255, 0.8)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Weekday Chart
+const weekdayCtx = document.getElementById('weekdayChart').getContext('2d');
+const weekdayChart = new Chart(weekdayCtx, {
+    type: 'radar',
+    data: {
+        labels: analyticsData.weekdays.labels,
+        datasets: [{
+            label: 'Event Attendance',
+            data: analyticsData.weekdays.data,
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            pointBackgroundColor: 'rgb(255, 99, 132)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'rgb(255, 99, 132)'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            r: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Monthly Trend Chart (smaller)
+const monthlyTrendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+const monthlyTrendChart = new Chart(monthlyTrendCtx, {
+    type: 'line',
+    data: {
+        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        datasets: [{
+            label: 'Revenue',
+            data: [800, 1200, 1500, 1800],
+            borderColor: 'rgb(255, 206, 86)',
+            backgroundColor: 'rgba(255, 206, 86, 0.1)',
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                display: false
+            },
+            x: {
+                display: false
+            }
+        }
+    }
+});
+
+// Export functionality
+document.getElementById('exportData').addEventListener('click', function() {
+    // In real implementation, this would export actual data
+    alert('Export functionality would be implemented here.');
+});
+
+// Event filter
+document.getElementById('eventFilter').addEventListener('change', function() {
+    // In real implementation, this would filter the analytics data
+    console.log('Filtering by event:', this.value);
+});
+</script>
+{% endblock %}

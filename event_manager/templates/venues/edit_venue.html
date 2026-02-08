@@ -1,0 +1,375 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit {{ venue.name }} - EventEase{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Edit Venue - {{ venue.name }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">Venue Name *</label>
+                                <input type="text" class="form-control" id="name" name="name" value="{{ venue.name }}" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="capacity" class="form-label">Capacity *</label>
+                                <input type="number" class="form-control" id="capacity" name="capacity" value="{{ venue.capacity }}" min="1" required>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="description" class="form-label">Description *</label>
+                                <textarea class="form-control" id="description" name="description" rows="4" required placeholder="Describe your venue, its unique features, and what makes it special...">{{ venue.description }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Location Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Location</h5>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="address" class="form-label">Street Address *</label>
+                                <textarea class="form-control" id="address" name="address" rows="2" required placeholder="Street address">{{ venue.address }}</textarea>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="city" class="form-label">City *</label>
+                                <input type="text" class="form-control" id="city" name="city" value="{{ venue.city }}" required>
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="state" class="form-label">State *</label>
+                                <input type="text" class="form-control" id="state" name="state" value="{{ venue.state }}" required>
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="postal_code" class="form-label">Zip Code *</label>
+                                <input type="text" class="form-control" id="postal_code" name="postal_code" value="{{ venue.postal_code }}" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="country" class="form-label">Country *</label>
+                                <input type="text" class="form-control" id="country" name="country" value="{{ venue.country }}" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="area_sqft" class="form-label">Area (sq ft)</label>
+                                <input type="number" class="form-control" id="area_sqft" name="area_sqft" value="{{ venue.area_sqft }}" min="0" placeholder="Optional">
+                            </div>
+                        </div>
+
+                        <!-- Pricing -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Pricing</h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="hourly_rate" class="form-label">Hourly Rate ($) *</label>
+                                <input type="number" class="form-control" id="hourly_rate" name="hourly_rate" value="{{ venue.hourly_rate }}" min="0" step="0.01" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="daily_rate" class="form-label">Daily Rate ($)</label>
+                                <input type="number" class="form-control" id="daily_rate" name="daily_rate" value="{{ venue.daily_rate }}" min="0" step="0.01" placeholder="Optional">
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Contact Information</h5>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="contact_person" class="form-label">Contact Person *</label>
+                                <input type="text" class="form-control" id="contact_person" name="contact_person" value="{{ venue.contact_person }}" required placeholder="Full name">
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="contact_email" class="form-label">Contact Email *</label>
+                                <input type="email" class="form-control" id="contact_email" name="contact_email" value="{{ venue.contact_email }}" required placeholder="venue@example.com">
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="contact_phone" class="form-label">Contact Phone *</label>
+                                <input type="tel" class="form-control" id="contact_phone" name="contact_phone" value="{{ venue.contact_phone }}" required placeholder="+1 (555) 123-4567">
+                            </div>
+                        </div>
+
+                        <!-- Features & Amenities -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Features & Amenities</h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="has_parking" name="has_parking" value="true" {% if venue.has_parking %}checked{% endif %}>
+                                    <label class="form-check-label" for="has_parking">
+                                        <i class="fas fa-parking me-2"></i>Parking Available
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="has_wifi" name="has_wifi" value="true" {% if venue.has_wifi %}checked{% endif %}>
+                                    <label class="form-check-label" for="has_wifi">
+                                        <i class="fas fa-wifi me-2"></i>WiFi Available
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="has_catering" name="has_catering" value="true" {% if venue.has_catering %}checked{% endif %}>
+                                    <label class="form-check-label" for="has_catering">
+                                        <i class="fas fa-utensils me-2"></i>Catering Available
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="has_av_equipment" name="has_av_equipment" value="true" {% if venue.has_av_equipment %}checked{% endif %}>
+                                    <label class="form-check-label" for="has_av_equipment">
+                                        <i class="fas fa-microphone me-2"></i>A/V Equipment
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="has_accessibility" name="has_accessibility" value="true" {% if venue.has_accessibility %}checked{% endif %}>
+                                    <label class="form-check-label" for="has_accessibility">
+                                        <i class="fas fa-wheelchair me-2"></i>Wheelchair Accessible
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Images -->
+                        {% if venue.images.exists %}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Current Images</h5>
+                            </div>
+                            <div class="col-12">
+                                <div class="row" id="currentImages">
+                                    {% for image in venue.images.all %}
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card">
+                                            <img src="{{ image.image.url }}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                                            <div class="card-body p-2 text-center">
+                                                <button type="button" class="btn btn-sm btn-danger delete-image-btn" data-image-id="{{ image.id }}">
+                                                    <i class="fas fa-trash"></i> Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Add New Images -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Add New Images</h5>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="images" class="form-label">Venue Images</label>
+                                <input type="file" class="form-control" id="images" name="images" multiple accept="image/*">
+                                <div class="form-text">Upload multiple images to showcase your venue (max 10 images)</div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <div id="imagePreview" class="row"></div>
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Status</h5>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if venue.is_active %}checked{% endif %}>
+                                    <label class="form-check-label" for="is_active">
+                                        Active (Allow bookings for this venue)
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Show current status info -->
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-info-circle me-2"></i>Current Status</h6>
+                                    <p class="mb-0">
+                                        <strong>Status:</strong> 
+                                        {% if venue.status == 'approved' %}
+                                            <span class="badge bg-success">{{ venue.get_status_display }}</span>
+                                        {% elif venue.status == 'pending' %}
+                                            <span class="badge bg-warning">{{ venue.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ venue.get_status_display }}</span>
+                                        {% endif %}
+                                        <br>
+                                        <strong>Created:</strong> {{ venue.created_at|date:"M d, Y g:i A" }}<br>
+                                        <strong>Last Updated:</strong> {{ venue.updated_at|date:"M d, Y g:i A" }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Errors -->
+                        {% if form.errors %}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="alert alert-danger">
+                                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Please correct the following errors:</h6>
+                                    <ul class="mb-0">
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ field|title }}: {{ error }}</li>
+                                            {% endfor %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Submit Buttons -->
+                        <div class="row">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'venues:manage_venue' venue.slug %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Cancel
+                                    </a>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-primary" id="previewChanges">
+                                            <i class="fas fa-eye me-2"></i>Preview Changes
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-2"></i>Update Venue
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Image preview functionality for new images
+document.getElementById('images').addEventListener('change', function(e) {
+    const previewContainer = document.getElementById('imagePreview');
+    previewContainer.innerHTML = '';
+    
+    const files = Array.from(e.target.files);
+    
+    if (files.length > 10) {
+        alert('Maximum 10 images allowed');
+        e.target.value = '';
+        return;
+    }
+    
+    files.forEach((file, index) => {
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const col = document.createElement('div');
+                col.className = 'col-md-3 mb-3';
+                col.innerHTML = `
+                    <div class="card">
+                        <img src="${e.target.result}" class="card-img-top" style="height: 150px; object-fit: cover;">
+                        <div class="card-body p-2 text-center">
+                            <small class="text-success">New Image ${index + 1}</small>
+                        </div>
+                    </div>
+                `;
+                previewContainer.appendChild(col);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+
+// Auto-calculate daily rate
+document.getElementById('hourly_rate').addEventListener('input', function(e) {
+    const hourlyRate = parseFloat(e.target.value) || 0;
+    const dailyRate = hourlyRate * 8; // 8 hours = 1 day
+    const currentDaily = document.getElementById('daily_rate');
+    if (!currentDaily.value) {
+        currentDaily.placeholder = `Suggested: $${dailyRate.toFixed(2)}`;
+    }
+});
+
+// Delete existing images
+document.querySelectorAll('.delete-image-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const imageId = this.dataset.imageId;
+        if (confirm('Are you sure you want to remove this image?')) {
+            // In a real implementation, this would make an AJAX call to delete the image
+            this.closest('.col-md-3').remove();
+        }
+    });
+});
+
+// Preview changes functionality
+document.getElementById('previewChanges').addEventListener('click', function() {
+    // This would open a modal or new tab to preview the changes
+    alert('Preview functionality would be implemented here');
+});
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const requiredFields = ['name', 'capacity', 'description', 'address', 'city', 'state', 'postal_code', 'country', 'hourly_rate', 'contact_person', 'contact_email', 'contact_phone'];
+    let isValid = true;
+    
+    requiredFields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        if (!field.value.trim()) {
+            field.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+        alert('Please fill in all required fields.');
+    }
+});
+</script>
+{% endblock %}

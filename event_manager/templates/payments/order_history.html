@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Orders - EventEase{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-receipt me-2"></i>My Orders & Bookings
+            </h2>
+            
+            <!-- Navigation tabs -->
+            <ul class="nav nav-tabs mb-4" id="orderTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="event-orders-tab" data-bs-toggle="tab" 
+                            data-bs-target="#event-orders" type="button" role="tab">
+                        <i class="fas fa-ticket-alt me-2"></i>Event Tickets
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="venue-bookings-tab" data-bs-toggle="tab" 
+                            data-bs-target="#venue-bookings" type="button" role="tab">
+                        <i class="fas fa-building me-2"></i>Venue Bookings
+                    </button>
+                </li>
+            </ul>
+            
+            <!-- Tab content -->
+            <div class="tab-content" id="orderTabsContent">
+                
+                <!-- Event Orders Tab -->
+                <div class="tab-pane fade show active" id="event-orders" role="tabpanel">
+                    {% if orders %}
+                        <div class="row">
+                            {% for order in orders %}
+                                <div class="col-12 mb-4">
+                                    <div class="card">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="mb-0">Order #{{ order.order_number }}</h5>
+                                                <small class="text-muted">{{ order.created_at|date:"M d, Y g:i A" }}</small>
+                                            </div>
+                                            <span class="badge bg-{% if order.status == 'confirmed' %}success{% elif order.status == 'pending' %}warning{% elif order.status == 'cancelled' %}danger{% else %}secondary{% endif %}">
+                                                {{ order.get_status_display }}
+                                            </span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h6><i class="fas fa-calendar-alt me-1"></i>{{ order.event.title }}</h6>
+                                                    <p class="text-muted mb-2">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                                        {{ order.event.location|default:"Location TBD" }}
+                                                    </p>
+                                                    <p class="text-muted mb-2">
+                                                        <i class="fas fa-clock me-1"></i>
+                                                        {{ order.event.start_date|date:"M d, Y" }}
+                                                        {% if order.event.start_time %}
+                                                            at {{ order.event.start_time|time:"g:i A" }}
+                                                        {% endif %}
+                                                    </p>
+                                                    <p class="text-muted">
+                                                        <i class="fas fa-ticket-alt me-1"></i>
+                                                        Quantity: {{ order.ticket_quantity }}
+                                                    </p>
+                                                </div>
+                                                <div class="col-md-6 text-end">
+                                                    <h4 class="text-primary">${{ order.total_amount }}</h4>
+                                                    {% if order.status == 'confirmed' %}
+                                                        <a href="{% url 'payments:download_ticket' order.pk %}" class="btn btn-outline-primary btn-sm me-2">
+                                                            <i class="fas fa-download me-1"></i>Download Tickets
+                                                        </a>
+                                                    {% endif %}
+                                                    <a href="{% url 'payments:order_detail' order.pk %}" class="btn btn-outline-secondary btn-sm">
+                                                        <i class="fas fa-eye me-1"></i>View Details
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-ticket-alt text-muted" style="font-size: 4rem;"></i>
+                            <h3 class="mt-3 text-muted">No Event Tickets</h3>
+                            <p class="text-muted">You haven't purchased any event tickets yet. Start by browsing our events!</p>
+                            <a href="{% url 'events:home' %}" class="btn btn-primary">
+                                <i class="fas fa-calendar-alt me-2"></i>Browse Events
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Venue Bookings Tab -->
+                <div class="tab-pane fade" id="venue-bookings" role="tabpanel">
+                    {% if venue_bookings %}
+                        <div class="row">
+                            {% for booking in venue_bookings %}
+                                <div class="col-12 mb-4">
+                                    <div class="card">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 class="mb-0">Booking #{{ booking.pk }}</h5>
+                                                <small class="text-muted">{{ booking.created_at|date:"M d, Y g:i A" }}</small>
+                                            </div>
+                                            <span class="badge bg-{% if booking.status == 'approved' %}success{% elif booking.status == 'pending' %}warning{% elif booking.status == 'rejected' %}danger{% elif booking.status == 'cancelled' %}secondary{% else %}info{% endif %}">
+                                                {{ booking.get_status_display }}
+                                            </span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h6><i class="fas fa-building me-1"></i>{{ booking.venue.name }}</h6>
+                                                    <p class="text-muted mb-2">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                                        {{ booking.venue.address }}, {{ booking.venue.city }}
+                                                    </p>
+                                                    <p class="text-muted mb-2">
+                                                        <i class="fas fa-calendar me-1"></i>
+                                                        {{ booking.booking_date|date:"M d, Y" }}
+                                                    </p>
+                                                    <p class="text-muted mb-2">
+                                                        <i class="fas fa-clock me-1"></i>
+                                                        {{ booking.start_time|time:"g:i A" }} - {{ booking.end_time|time:"g:i A" }}
+                                                    </p>
+                                                    <p class="text-muted">
+                                                        <i class="fas fa-users me-1"></i>
+                                                        Expected Attendees: {{ booking.expected_attendees }}
+                                                    </p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6><i class="fas fa-star me-1"></i>Event Details</h6>
+                                                    <p class="mb-2"><strong>{{ booking.event_name }}</strong></p>
+                                                    {% if booking.event_description %}
+                                                        <p class="text-muted small">{{ booking.event_description|truncatewords:20 }}</p>
+                                                    {% endif %}
+                                                    
+                                                    {% if booking.quoted_price %}
+                                                        <h4 class="text-success mt-3">${{ booking.quoted_price }}</h4>
+                                                        <small class="text-muted">Quoted Price</small>
+                                                    {% else %}
+                                                        <p class="text-muted mt-3">
+                                                            <i class="fas fa-clock me-1"></i>
+                                                            Awaiting price quote
+                                                        </p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            {% if booking.review_notes %}
+                                                <hr>
+                                                <div class="alert alert-info mb-0">
+                                                    <strong><i class="fas fa-comment me-1"></i>Venue Manager Notes:</strong>
+                                                    <p class="mb-0 mt-2">{{ booking.review_notes }}</p>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-building text-muted" style="font-size: 4rem;"></i>
+                            <h3 class="mt-3 text-muted">No Venue Bookings</h3>
+                            <p class="text-muted">You haven't made any venue bookings yet. Start by browsing our venues!</p>
+                            <a href="{% url 'venues:home' %}" class="btn btn-success">
+                                <i class="fas fa-building me-2"></i>Browse Venues
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize Bootstrap tabs
+document.addEventListener('DOMContentLoaded', function() {
+    var triggerTabList = [].slice.call(document.querySelectorAll('#orderTabs button'))
+    triggerTabList.forEach(function (triggerEl) {
+        var tabTrigger = new bootstrap.Tab(triggerEl)
+        triggerEl.addEventListener('click', function (event) {
+            event.preventDefault()
+            tabTrigger.show()
+        })
+    })
+});
+</script>
+{% endblock %}

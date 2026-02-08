@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Venue Manager Dashboard - EventEase{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-building me-2"></i>Venue Manager Dashboard</h2>
+                <a href="{% url 'venues:create_venue' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add New Venue
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_venues }}</h4>
+                            <p class="card-text">My Venues</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-building fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_bookings }}</h4>
+                            <p class="card-text">Total Bookings</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-check fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ pending_requests }}</h4>
+                            <p class="card-text">Pending Requests</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">${{ monthly_revenue|floatformat:0 }}</h4>
+                            <p class="card-text">Monthly Revenue</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-dollar-sign fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- My Venues -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">My Venues</h5>
+                    <a href="{% url 'venues:create_venue' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-plus me-1"></i>Add Venue
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if venues %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Venue</th>
+                                        <th>Capacity</th>
+                                        <th>Rate/Hour</th>
+                                        <th>Status</th>
+                                        <th>Bookings</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for venue in venues %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if venue.images.first %}
+                                                        <img src="{{ venue.images.first.image.url }}" 
+                                                             class="rounded me-3" 
+                                                             style="width: 50px; height: 50px; object-fit: cover;">
+                                                    {% else %}
+                                                        <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" 
+                                                             style="width: 50px; height: 50px;">
+                                                            <i class="fas fa-building text-muted"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <strong>{{ venue.name }}</strong><br>
+                                                        <small class="text-muted">{{ venue.address|truncatechars:30 }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ venue.capacity }}</td>
+                                            <td>${{ venue.hourly_rate }}</td>
+                                            <td>
+                                                {% if venue.is_active %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary">{{ venue.hosted_events.count }}</span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'venues:venue_detail' venue.slug %}" 
+                                                       class="btn btn-outline-primary btn-sm" title="View">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{% url 'venues:edit_venue' venue.slug %}" 
+                                                       class="btn btn-outline-secondary btn-sm" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="{% url 'venues:manage_venue' venue.slug %}" 
+                                                       class="btn btn-outline-info btn-sm" title="Manage">
+                                                        <i class="fas fa-cogs"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-building text-muted" style="font-size: 4rem;"></i>
+                            <h4 class="mt-3 text-muted">No Venues Yet</h4>
+                            <p class="text-muted">Start by adding your first venue to the platform.</p>
+                            <a href="{% url 'venues:create_venue' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Add Your First Venue
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Recent Booking Requests -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Recent Booking Requests</h6>
+                    <a href="{% url 'venues:venue_bookings' %}" class="btn btn-outline-primary btn-sm">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_requests %}
+                        {% for request in recent_requests %}
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ request.venue.name }}</h6>
+                                    <p class="mb-1 text-muted small">{{ request.requester.username }}</p>
+                                    <small class="text-muted">{{ request.requested_date }}</small>
+                                </div>
+                                <span class="badge bg-{% if request.status == 'pending' %}warning{% elif request.status == 'approved' %}success{% else %}danger{% endif %}">
+                                    {{ request.get_status_display }}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No recent booking requests.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'venues:create_venue' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-plus me-2"></i>Add New Venue
+                        </a>
+                        <a href="{% url 'venues:venue_bookings' %}" class="btn btn-outline-info">
+                            <i class="fas fa-calendar-check me-2"></i>Manage Bookings
+                        </a>
+                        <a href="{% url 'venues:venue_analytics' %}" class="btn btn-outline-success">
+                            <i class="fas fa-chart-line me-2"></i>View Analytics
+                        </a>
+                        <a href="{% url 'venues:manage_availability' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-calendar-alt me-2"></i>Manage Availability
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Monthly Bookings</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyBookingsChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Monthly Bookings Chart
+const ctx = document.getElementById('monthlyBookingsChart').getContext('2d');
+const monthlyBookingsChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+            label: 'Bookings',
+            data: [12, 19, 3, 5, 2, 3],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

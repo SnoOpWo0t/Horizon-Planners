@@ -1,0 +1,548 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ venue.name }} - Horizon Planner{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/venues.css' %}">
+<style>
+    .venue-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+    .venue-image-gallery {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    .main-image {
+        height: 400px;
+        object-fit: cover;
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+    .main-image:hover {
+        transform: scale(1.02);
+    }
+    .thumbnail-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .thumbnail {
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: border-color 0.3s;
+    }
+    .thumbnail:hover, .thumbnail.active {
+        border-color: #667eea;
+    }
+    .feature-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        margin: 0.25rem;
+        background: #f8f9fa;
+        border-radius: 20px;
+        border: 1px solid #dee2e6;
+    }
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s;
+    }
+    .stats-card:hover {
+        transform: translateY(-2px);
+    }
+    .pricing-card {
+        background: linear-gradient(45deg, #28a745, #20c997);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .amenity-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: #28a745;
+    }
+    .event-card {
+        transition: transform 0.2s;
+        height: 100%;
+    }
+    .event-card:hover {
+        transform: translateY(-3px);
+    }
+    .image-modal {
+        background: rgba(0,0,0,0.9);
+    }
+    .modal-image {
+        max-width: 90vw;
+        max-height: 90vh;
+        object-fit: contain;
+    }
+    .breadcrumb-custom {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Venue Hero Section -->
+<div class="venue-hero">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-custom text-white">
+                <li class="breadcrumb-item"><a href="{% url 'venues:venue_list' %}" class="text-white">Venues</a></li>
+                <li class="breadcrumb-item active text-white">{{ venue.name }}</li>
+            </ol>
+        </nav>
+        
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 mb-3">{{ venue.name }}</h1>
+                <p class="lead mb-3">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    {{ venue.address }}, {{ venue.city }}, {{ venue.state }} {{ venue.postal_code }}
+                </p>
+                <div class="d-flex flex-wrap align-items-center gap-4">
+                    <div>
+                        <i class="fas fa-users me-2"></i>
+                        <strong>{{ venue.capacity }}</strong> capacity
+                    </div>
+                    <div>
+                        <i class="fas fa-star me-2"></i>
+                        <strong>{{ venue.average_rating|floatformat:1|default:"No rating" }}</strong>
+                        {% if venue.average_rating %}
+                            ({{ venue.reviews.count }} review{{ venue.reviews.count|pluralize }})
+                        {% endif %}
+                    </div>
+                    <div>
+                        <i class="fas fa-calendar-check me-2"></i>
+                        <strong>{{ venue.events.count }}</strong> event{{ venue.events.count|pluralize }} hosted
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-end">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'venues:book_venue' venue.slug %}" class="btn btn-light btn-lg me-2">
+                        <i class="fas fa-calendar-plus me-2"></i>Book Venue
+                    </a>
+                {% endif %}
+                {% if user == venue.manager or user.is_admin_user %}
+                    <div class="btn-group">
+                        <a href="{% url 'venues:manage_venue' venue.slug %}" class="btn btn-outline-light">
+                            <i class="fas fa-cog me-2"></i>Manage
+                        </a>
+                        <a href="{% url 'venues:edit_venue' venue.slug %}" class="btn btn-outline-light">
+                            <i class="fas fa-edit me-2"></i>Edit
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Image Gallery -->
+            <div class="venue-image-gallery">
+                {% if venue.images.exists %}
+                    <img src="{{ venue.images.first.image.url }}" 
+                         class="w-100 main-image" 
+                         id="mainImage" 
+                         alt="{{ venue.name }}"
+                         data-bs-toggle="modal" 
+                         data-bs-target="#imageModal">
+                    
+                    {% if venue.images.count > 1 %}
+                        <div class="thumbnail-grid p-3 bg-light">
+                            {% for image in venue.images.all %}
+                                <img src="{{ image.image.url }}" 
+                                     class="thumbnail {% if forloop.first %}active{% endif %}" 
+                                     alt="{{ image.caption|default:venue.name }}"
+                                     onclick="changeMainImage('{{ image.image.url }}', this)">
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <!-- Default placeholder -->
+                    <div class="w-100 d-flex align-items-center justify-content-center bg-light" style="height: 400px;">
+                        <div class="text-center">
+                            <i class="fas fa-building fa-5x text-muted mb-3"></i>
+                            <h4 class="text-muted">No Images Available</h4>
+                            <p class="text-muted">Images will be displayed here when uploaded</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Pricing Information -->
+            <div class="pricing-card">
+                <h3 class="mb-3">Pricing</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h2 class="mb-2">${{ venue.hourly_rate }}</h2>
+                        <p class="mb-0">Per Hour</p>
+                    </div>
+                    {% if venue.daily_rate %}
+                        <div class="col-md-6">
+                            <h2 class="mb-2">${{ venue.daily_rate }}</h2>
+                            <p class="mb-0">Per Day</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mt-3">
+                    <small class="opacity-75">Contact venue manager for custom pricing and packages</small>
+                </div>
+            </div>
+
+            <!-- About Section -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title mb-3">
+                        <i class="fas fa-info-circle me-2"></i>About This Venue
+                    </h3>
+                    <p class="card-text">{{ venue.description|linebreaks }}</p>
+                    
+                    {% if venue.area_sqft %}
+                        <div class="mt-3">
+                            <strong><i class="fas fa-expand-arrows-alt me-2"></i>Area:</strong> 
+                            {{ venue.area_sqft|floatformat:0 }} square feet
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Amenities & Features -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">
+                        <i class="fas fa-star me-2"></i>Amenities & Features
+                    </h3>
+                    <div class="row">
+                        {% if venue.has_parking %}
+                            <div class="col-md-6 mb-3">
+                                <div class="feature-badge">
+                                    <i class="fas fa-parking amenity-icon"></i>
+                                    <strong>Parking Available</strong>
+                                    <br><small class="text-muted">On-site parking for guests</small>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if venue.has_wifi %}
+                            <div class="col-md-6 mb-3">
+                                <div class="feature-badge">
+                                    <i class="fas fa-wifi amenity-icon"></i>
+                                    <strong>Free WiFi</strong>
+                                    <br><small class="text-muted">High-speed internet access</small>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if venue.has_catering %}
+                            <div class="col-md-6 mb-3">
+                                <div class="feature-badge">
+                                    <i class="fas fa-utensils amenity-icon"></i>
+                                    <strong>Catering Services</strong>
+                                    <br><small class="text-muted">Professional catering available</small>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if venue.has_av_equipment %}
+                            <div class="col-md-6 mb-3">
+                                <div class="feature-badge">
+                                    <i class="fas fa-microphone amenity-icon"></i>
+                                    <strong>A/V Equipment</strong>
+                                    <br><small class="text-muted">Sound system and presentation tools</small>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if venue.has_accessibility %}
+                            <div class="col-md-6 mb-3">
+                                <div class="feature-badge">
+                                    <i class="fas fa-wheelchair amenity-icon"></i>
+                                    <strong>Wheelchair Accessible</strong>
+                                    <br><small class="text-muted">ADA compliant facilities</small>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if not venue.has_parking and not venue.has_wifi and not venue.has_catering and not venue.has_av_equipment and not venue.has_accessibility %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-info-circle fa-2x text-muted mb-3"></i>
+                            <p class="text-muted">Contact the venue manager for information about available amenities.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Upcoming Events -->
+            {% if upcoming_events %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h3 class="card-title mb-4">
+                            <i class="fas fa-calendar-alt me-2"></i>Upcoming Events
+                        </h3>
+                        <div class="row">
+                            {% for event in upcoming_events %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card event-card border">
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ event.title }}</h6>
+                                            <p class="card-text text-muted small mb-2">
+                                                <i class="fas fa-calendar me-1"></i>{{ event.event_date|date:"M d, Y" }}
+                                                {% if event.start_time %}
+                                                    at {{ event.start_time|time:"g:i A" }}
+                                                {% endif %}
+                                            </p>
+                                            <p class="card-text text-muted small mb-3">
+                                                <i class="fas fa-users me-1"></i>{{ event.total_seats }} seats
+                                                {% if event.category %}
+                                                    • <span class="badge bg-light text-dark">{{ event.category.name }}</span>
+                                                {% endif %}
+                                            </p>
+                                            <a href="{% url 'events:event_detail' event.slug %}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye me-1"></i>View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if venue.events.count > 4 %}
+                            <div class="text-center mt-3">
+                                <a href="{% url 'events:event_list' %}?venue={{ venue.id }}" class="btn btn-outline-primary">
+                                    View All {{ venue.events.count }} Events
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Contact Information -->
+            <div class="stats-card">
+                <h5 class="mb-3">
+                    <i class="fas fa-address-card me-2"></i>Contact Information
+                </h5>
+                
+                <div class="mb-3">
+                    <strong><i class="fas fa-user-tie me-2 text-primary"></i>Venue Manager:</strong><br>
+                    {{ venue.contact_person }}
+                </div>
+                
+                {% if venue.contact_email %}
+                    <div class="mb-3">
+                        <strong><i class="fas fa-envelope me-2 text-primary"></i>Email:</strong><br>
+                        <a href="mailto:{{ venue.contact_email }}" class="text-decoration-none">
+                            {{ venue.contact_email }}
+                        </a>
+                    </div>
+                {% endif %}
+                
+                {% if venue.contact_phone %}
+                    <div class="mb-3">
+                        <strong><i class="fas fa-phone me-2 text-primary"></i>Phone:</strong><br>
+                        <a href="tel:{{ venue.contact_phone }}" class="text-decoration-none">
+                            {{ venue.contact_phone }}
+                        </a>
+                    </div>
+                {% endif %}
+                
+                <div class="mb-0">
+                    <strong><i class="fas fa-map-marker-alt me-2 text-primary"></i>Location:</strong><br>
+                    {{ venue.city }}, {{ venue.state }}, {{ venue.country }}
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="stats-card">
+                <h5 class="mb-3">
+                    <i class="fas fa-chart-bar me-2"></i>Venue Statistics
+                </h5>
+                <div class="row text-center">
+                    <div class="col-6 border-end">
+                        <h3 class="text-primary mb-1">{{ venue.events.count }}</h3>
+                        <small class="text-muted">Events Hosted</small>
+                    </div>
+                    <div class="col-6">
+                        <h3 class="text-warning mb-1">{{ venue.reviews.count }}</h3>
+                        <small class="text-muted">Total Reviews</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6 border-end">
+                        <h3 class="text-success mb-1">{{ venue.capacity }}</h3>
+                        <small class="text-muted">Max Capacity</small>
+                    </div>
+                    <div class="col-6">
+                        <h3 class="text-info mb-1">
+                            {% if venue.is_active %}
+                                <i class="fas fa-check-circle"></i>
+                            {% else %}
+                                <i class="fas fa-pause-circle"></i>
+                            {% endif %}
+                        </h3>
+                        <small class="text-muted">
+                            {% if venue.is_active %}Active{% else %}Inactive{% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="stats-card">
+                <h5 class="mb-3">
+                    <i class="fas fa-bolt me-2"></i>Quick Actions
+                </h5>
+                <div class="d-grid gap-2">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'venues:book_venue' venue.slug %}" class="btn btn-primary">
+                            <i class="fas fa-calendar-plus me-2"></i>Book This Venue
+                        </a>
+                        <a href="{% url 'reviews:create_venue_review' venue.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-star me-2"></i>Write Review
+                        </a>
+                    {% else %}
+                        <a href="{% url 'users:login' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login to Book
+                        </a>
+                    {% endif %}
+                    
+                    <button class="btn btn-outline-secondary" onclick="shareVenue()">
+                        <i class="fas fa-share-alt me-2"></i>Share Venue
+                    </button>
+                    
+                    <button class="btn btn-outline-info" onclick="showDirections()">
+                        <i class="fas fa-directions me-2"></i>Get Directions
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Reviews -->
+            {% if venue.reviews.exists %}
+                <div class="stats-card">
+                    <h5 class="mb-3">
+                        <i class="fas fa-comments me-2"></i>Recent Reviews
+                    </h5>
+                    {% for review in venue.reviews.all|slice:":3" %}
+                        <div class="border-bottom pb-2 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
+                                    <div class="text-warning small">
+                                        {% for i in "12345"|make_list %}
+                                            <i class="fas fa-star{% if forloop.counter > review.rating %} text-muted{% endif %}"></i>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ review.created_at|date:"M d" }}</small>
+                            </div>
+                            <p class="small mb-0 mt-1">{{ review.comment|truncatewords:15 }}</p>
+                        </div>
+                    {% endfor %}
+                    
+                    {% if venue.reviews.count > 3 %}
+                        <div class="text-center">
+                            <a href="#reviews" class="btn btn-sm btn-outline-primary">
+                                View All {{ venue.reviews.count }} Reviews
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content image-modal border-0">
+            <div class="modal-body p-0 text-center">
+                <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3 z-index-1" 
+                        data-bs-dismiss="modal" style="z-index: 1050;"></button>
+                <img src="" class="modal-image" alt="{{ venue.name }}" id="modalImage">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Image gallery functionality
+    function changeMainImage(src, thumbnail) {
+        document.getElementById('mainImage').src = src;
+        
+        // Update active thumbnail
+        document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+        thumbnail.classList.add('active');
+    }
+
+    // Modal image functionality
+    document.getElementById('imageModal').addEventListener('show.bs.modal', function (event) {
+        const mainImage = document.getElementById('mainImage');
+        const modalImage = document.getElementById('modalImage');
+        modalImage.src = mainImage.src;
+    });
+
+    // Share functionality
+    function shareVenue() {
+        if (navigator.share) {
+            navigator.share({
+                title: '{{ venue.name }}',
+                text: 'Check out this amazing venue: {{ venue.name }}',
+                url: window.location.href
+            });
+        } else {
+            // Fallback - copy to clipboard
+            navigator.clipboard.writeText(window.location.href).then(function() {
+                alert('Venue link copied to clipboard!');
+            });
+        }
+    }
+
+    // Directions functionality
+    function showDirections() {
+        const address = encodeURIComponent('{{ venue.address }}, {{ venue.city }}, {{ venue.state }}');
+        const url = `https://www.google.com/maps/dir/?api=1&destination=${address}`;
+        window.open(url, '_blank');
+    }
+
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+</script>
+{% endblock %}

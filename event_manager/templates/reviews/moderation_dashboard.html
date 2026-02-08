@@ -1,0 +1,439 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Review Moderation Dashboard - EventEase{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+    }
+    
+    .stats-card.pending {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .stats-card.approved {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .stats-card.rejected {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+
+    .moderation-card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: 1px solid rgba(0, 0, 0, 0.125);
+        border-radius: 0.25rem;
+    }
+    
+    .review-item {
+        border-left: 4px solid #ffc107;
+        background-color: #fff3cd;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border-radius: 0.25rem;
+    }
+    
+    .comment-item {
+        border-left: 4px solid #17a2b8;
+        background-color: #d1ecf1;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border-radius: 0.25rem;
+    }
+    
+    .rating-stars {
+        color: #ffc107;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container-fluid my-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-shield-alt me-2 text-primary"></i>Review Moderation Dashboard</h2>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary" id="refreshData">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
+                    <button class="btn btn-outline-success" id="approveAllSelected">
+                        <i class="fas fa-check me-2"></i>Approve Selected
+                    </button>
+                    <button class="btn btn-outline-danger" id="rejectAllSelected">
+                        <i class="fas fa-times me-2"></i>Reject Selected
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overview Stats -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card pending text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title mb-0">{{ total_pending_reviews|default:0 }}</h4>
+                            <p class="card-text small">Pending Reviews</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card pending text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title mb-0">{{ total_pending_comments|default:0 }}</h4>
+                            <p class="card-text small">Pending Comments</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-comments fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card approved text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title mb-0">{{ total_approved_reviews|default:0 }}</h4>
+                            <p class="card-text small">Approved Reviews</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card stats-card rejected text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title mb-0">{{ total_rejected_reviews|default:0 }}</h4>
+                            <p class="card-text small">Rejected Reviews</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-times-circle fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Reviews Section -->
+    {% if pending_reviews %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card moderation-card">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-star me-2"></i>Pending Reviews ({{ pending_reviews.count }})</h5>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="selectAllReviews">
+                        <label class="form-check-label" for="selectAllReviews">Select All</label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% for review in pending_reviews %}
+                    <div class="review-item">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input review-checkbox" type="checkbox" value="{{ review.id }}" id="review{{ review.id }}">
+                                <label class="form-check-label" for="review{{ review.id }}">
+                                    <strong>{{ review.title }}</strong>
+                                </label>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-success approve-review-btn" data-review-id="{{ review.id }}">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                                <button class="btn btn-sm btn-danger reject-review-btn" data-review-id="{{ review.id }}">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="rating-stars mb-2">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <p class="mb-2">{{ review.content|truncatewords:30 }}</p>
+                                <small class="text-muted">
+                                    By <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
+                                    on {{ review.created_at|date:"M d, Y g:i A" }}
+                                    {% if review.event %}
+                                        for event <strong>{{ review.event.title }}</strong>
+                                    {% elif review.venue %}
+                                        for venue <strong>{{ review.venue.name }}</strong>
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pending Comments Section -->
+    {% if pending_comments %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card moderation-card">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Pending Comments ({{ pending_comments.count }})</h5>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="selectAllComments">
+                        <label class="form-check-label text-white" for="selectAllComments">Select All</label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% for comment in pending_comments %}
+                    <div class="comment-item">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input comment-checkbox" type="checkbox" value="{{ comment.id }}" id="comment{{ comment.id }}">
+                                <label class="form-check-label" for="comment{{ comment.id }}">
+                                    <strong>Comment by {{ comment.user.get_full_name|default:comment.user.username }}</strong>
+                                </label>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-success approve-comment-btn" data-comment-id="{{ comment.id }}">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                                <button class="btn btn-sm btn-danger reject-comment-btn" data-comment-id="{{ comment.id }}">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            </div>
+                        </div>
+                        <p class="mb-2">{{ comment.content|truncatewords:30 }}</p>
+                        <small class="text-muted">
+                            On {{ comment.created_at|date:"M d, Y g:i A" }}
+                            for event <strong>{{ comment.event.title }}</strong>
+                            {% if comment.parent %}
+                                (Reply to another comment)
+                            {% endif %}
+                        </small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- No Pending Items -->
+    {% if not pending_reviews and not pending_comments %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card moderation-card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                    <h4>All Caught Up!</h4>
+                    <p class="text-muted">No pending reviews or comments to moderate.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card moderation-card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-thumbs-up me-2"></i>Recently Approved</h5>
+                </div>
+                <div class="card-body">
+                    {% for review in recent_approved_reviews %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ review.title|truncatechars:40 }}</strong><br>
+                            <small class="text-muted">{{ review.updated_at|date:"M d, Y" }}</small>
+                        </div>
+                        <span class="badge bg-success">Approved</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No recently approved reviews</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card moderation-card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-thumbs-down me-2"></i>Recently Rejected</h5>
+                </div>
+                <div class="card-body">
+                    {% for review in recent_rejected_reviews %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <strong>{{ review.title|truncatechars:40 }}</strong><br>
+                            <small class="text-muted">{{ review.updated_at|date:"M d, Y" }}</small>
+                        </div>
+                        <span class="badge bg-danger">Rejected</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No recently rejected reviews</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    // Select all functionality
+    document.getElementById('selectAllReviews').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.review-checkbox');
+        checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+    });
+    
+    document.getElementById('selectAllComments').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.comment-checkbox');
+        checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+    });
+    
+    // Individual approve/reject buttons
+    document.querySelectorAll('.approve-review-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const reviewId = this.dataset.reviewId;
+            moderateItem('review', reviewId, 'approve');
+        });
+    });
+    
+    document.querySelectorAll('.reject-review-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const reviewId = this.dataset.reviewId;
+            moderateItem('review', reviewId, 'reject');
+        });
+    });
+    
+    document.querySelectorAll('.approve-comment-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const commentId = this.dataset.commentId;
+            moderateItem('comment', commentId, 'approve');
+        });
+    });
+    
+    document.querySelectorAll('.reject-comment-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const commentId = this.dataset.commentId;
+            moderateItem('comment', commentId, 'reject');
+        });
+    });
+    
+    // Bulk approve/reject
+    document.getElementById('approveAllSelected').addEventListener('click', function() {
+        const selectedReviews = Array.from(document.querySelectorAll('.review-checkbox:checked')).map(cb => cb.value);
+        const selectedComments = Array.from(document.querySelectorAll('.comment-checkbox:checked')).map(cb => cb.value);
+        
+        if (selectedReviews.length === 0 && selectedComments.length === 0) {
+            alert('Please select items to approve');
+            return;
+        }
+        
+        if (confirm(`Approve ${selectedReviews.length} reviews and ${selectedComments.length} comments?`)) {
+            bulkModerate(selectedReviews, selectedComments, 'approve');
+        }
+    });
+    
+    document.getElementById('rejectAllSelected').addEventListener('click', function() {
+        const selectedReviews = Array.from(document.querySelectorAll('.review-checkbox:checked')).map(cb => cb.value);
+        const selectedComments = Array.from(document.querySelectorAll('.comment-checkbox:checked')).map(cb => cb.value);
+        
+        if (selectedReviews.length === 0 && selectedComments.length === 0) {
+            alert('Please select items to reject');
+            return;
+        }
+        
+        if (confirm(`Reject ${selectedReviews.length} reviews and ${selectedComments.length} comments?`)) {
+            bulkModerate(selectedReviews, selectedComments, 'reject');
+        }
+    });
+    
+    // Refresh button
+    document.getElementById('refreshData').addEventListener('click', function() {
+        window.location.reload();
+    });
+    
+    function moderateItem(type, id, action) {
+        const url = `/reviews/${type}/${id}/${action}/`;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove the item from the list
+                const item = document.querySelector(`#${type}${id}`).closest(`.${type}-item`);
+                item.style.transition = 'opacity 0.3s';
+                item.style.opacity = '0';
+                setTimeout(() => item.remove(), 300);
+                
+                // Update stats
+                updateStats();
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error occurred'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error processing request');
+        });
+    }
+    
+    function bulkModerate(reviewIds, commentIds, action) {
+        // This would need to be implemented in the backend
+        // For now, just process them individually
+        reviewIds.forEach(id => moderateItem('review', id, action));
+        commentIds.forEach(id => moderateItem('comment', id, action));
+    }
+    
+    function updateStats() {
+        // This would update the stats cards
+        // For now, just reload the page after a delay
+        setTimeout(() => window.location.reload(), 1000);
+    }
+});
+</script>
+{% endblock %}

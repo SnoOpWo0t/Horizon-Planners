@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Role Upgrade Request - EventEase{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-arrow-up me-2"></i>Request Role Upgrade</h3>
+                </div>
+                <div class="card-body">
+                    {% if pending_requests %}
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>Pending Requests</h6>
+                            <p>You have pending role upgrade requests. Please wait for admin approval.</p>
+                            {% for request in pending_requests %}
+                                <div class="border p-2 rounded mb-2">
+                                    <strong>{{ request.get_requested_role_display }}</strong>
+                                    <small class="text-muted">- Requested on {{ request.created_at|date:"M d, Y" }}</small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label for="id_requested_role" class="form-label">Requested Role</label>
+                                <select class="form-select" name="requested_role" id="id_requested_role" required>
+                                    <option value="">Select a role...</option>
+                                    <option value="horizon_planner">Horizon Planner</option>
+                                    <option value="venue_manager">Venue Manager</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_reason" class="form-label">Reason for Request</label>
+                                <textarea class="form-control" name="reason" id="id_reason" rows="4" 
+                                         placeholder="Please explain why you would like this role upgrade..." required></textarea>
+                                <div class="form-text">Please provide a detailed explanation for your role upgrade request.</div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>Submit Request
+                                </button>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

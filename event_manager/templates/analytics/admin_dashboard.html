@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - EventEase{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</h2>
+            <p class="text-muted">Manage the entire EventEase platform</p>
+        </div>
+    </div>
+
+    <!-- Overview Stats -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_users }}</h4>
+                            <p class="card-text">Total Users</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_events }}</h4>
+                            <p class="card-text">Total Events</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-alt fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_venues }}</h4>
+                            <p class="card-text">Total Venues</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-building fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">${{ platform_revenue|floatformat:0 }}</h4>
+                            <p class="card-text">Platform Revenue</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-dollar-sign fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Alerts -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Platform Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>User Growth (This Month)</h6>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="flex-grow-1">
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" style="width: {{ user_growth_percentage }}%"></div>
+                                    </div>
+                                </div>
+                                <span class="ms-2">+{{ new_users_this_month }} users</span>
+                            </div>
+
+                            <h6>Event Activity</h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="text-center border-end">
+                                        <h4 class="text-primary">{{ active_events }}</h4>
+                                        <small class="text-muted">Active Events</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <h4 class="text-success">{{ events_this_month }}</h4>
+                                        <small class="text-muted">New This Month</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h6>Revenue Breakdown</h6>
+                            <canvas id="revenueBreakdownChart" height="150"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Pending Actions -->
+            <div class="card mb-3">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Pending Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Role Upgrade Requests</span>
+                            <span class="badge bg-warning">{{ pending_role_requests }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Content Moderation</span>
+                            <span class="badge bg-danger">{{ pending_reviews }}</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Reported Issues</span>
+                            <span class="badge bg-secondary">{{ reported_issues }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'users:role_requests' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-plus me-2"></i>Manage Role Requests
+                        </a>
+                        <a href="{% url 'reviews:moderation_dashboard' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-flag me-2"></i>Content Moderation
+                        </a>
+                        <a href="{% url 'analytics:platform_analytics' %}" class="btn btn-outline-success">
+                            <i class="fas fa-chart-bar me-2"></i>Platform Analytics
+                        </a>
+                        <a href="{% url 'analytics:user_activity' %}" class="btn btn-outline-info">
+                            <i class="fas fa-users me-2"></i>User Activity
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Analytics -->
+    <div class="row mb-4">
+        <!-- Recent Activities -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Platform Activity</h5>
+                    <a href="{% url 'analytics:user_activity' %}" class="btn btn-outline-primary btn-sm">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_activities %}
+                        <div class="timeline" style="max-height: 400px; overflow-y: auto;">
+                            {% for activity in recent_activities|slice:":10" %}
+                                <div class="timeline-item mb-3">
+                                    <div class="d-flex">
+                                        <div class="timeline-marker me-3">
+                                            {% if activity.activity_type == 'user_registered' %}
+                                                <i class="fas fa-user-plus text-success"></i>
+                                            {% elif activity.activity_type == 'event_created' %}
+                                                <i class="fas fa-calendar-plus text-primary"></i>
+                                            {% elif activity.activity_type == 'venue_added' %}
+                                                <i class="fas fa-building text-info"></i>
+                                            {% else %}
+                                                <i class="fas fa-circle text-muted"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <p class="mb-1">{{ activity.description|default:"Activity description" }}</p>
+                                            <small class="text-muted">{{ activity.created_at|default:"Recently"|timesince }} ago</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent activities.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Performing Content -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Top Performing Events</h5>
+                </div>
+                <div class="card-body">
+                    {% if top_events %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Tickets Sold</th>
+                                        <th>Revenue</th>
+                                        <th>Rating</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in top_events %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ event.title|truncatechars:20 }}</strong><br>
+                                                <small class="text-muted">{{ event.venue.name }}</small>
+                                            </td>
+                                            <td>{{ event.tickets_sold }}</td>
+                                            <td class="text-success">${{ event.revenue|floatformat:0 }}</td>
+                                            <td>
+                                                <div class="text-warning">
+                                                    {% for i in "12345"|make_list %}
+                                                        <i class="fas fa-star{% if forloop.counter > event.average_rating %} text-muted{% endif %}"></i>
+                                                    {% endfor %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No event data available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">System Status & Health</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="mb-2">
+                                    <i class="fas fa-server fa-2x text-success"></i>
+                                </div>
+                                <h6>Server Status</h6>
+                                <span class="badge bg-success">Online</span>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="mb-2">
+                                    <i class="fas fa-database fa-2x text-success"></i>
+                                </div>
+                                <h6>Database</h6>
+                                <span class="badge bg-success">Healthy</span>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="mb-2">
+                                    <i class="fas fa-envelope fa-2x text-warning"></i>
+                                </div>
+                                <h6>Email Service</h6>
+                                <span class="badge bg-warning">Limited</span>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="mb-2">
+                                    <i class="fas fa-credit-card fa-2x text-success"></i>
+                                </div>
+                                <h6>Payment Gateway</h6>
+                                <span class="badge bg-success">Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Revenue Breakdown Chart
+const ctx = document.getElementById('revenueBreakdownChart').getContext('2d');
+const revenueChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Event Tickets', 'Venue Bookings', 'Platform Fees'],
+        datasets: [{
+            data: [60, 30, 10],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 206, 86, 0.8)',
+                'rgba(255, 99, 132, 0.8)'
+            ],
+            borderColor: [
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(255, 99, 132, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

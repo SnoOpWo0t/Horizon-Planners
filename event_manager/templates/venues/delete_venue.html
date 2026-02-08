@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete {{ venue.name }} - Horizon Planner{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-warning {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .consequences-list {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Warning Header -->
+            <div class="delete-warning text-center">
+                <i class="fas fa-exclamation-triangle fa-4x mb-3"></i>
+                <h2 class="mb-3">Delete Venue</h2>
+                <h4 class="mb-0">{{ venue.name }}</h4>
+                <p class="mb-0 opacity-75">{{ venue.city }}, {{ venue.state }}</p>
+            </div>
+
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-warning me-2"></i>
+                        Warning: This action cannot be undone!
+                    </h5>
+                </div>
+                
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Before you proceed, please consider the consequences:
+                        </h6>
+                        
+                        <div class="consequences-list mt-3">
+                            <ul class="mb-0">
+                                <li><strong>All venue data will be permanently deleted</strong> including images, descriptions, and settings</li>
+                                <li><strong>{{ venue.events.count }} associated event{{ venue.events.count|pluralize }}</strong> will lose their venue connection</li>
+                                <li><strong>Booking history and reviews</strong> related to this venue will be affected</li>
+                                <li><strong>Venue availability schedules</strong> will be completely removed</li>
+                                <li><strong>This cannot be undone</strong> - you will need to recreate the venue from scratch</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Venue Details Summary -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Venue Details</h6>
+                            <p><strong>Name:</strong> {{ venue.name }}</p>
+                            <p><strong>Location:</strong> {{ venue.city }}, {{ venue.state }}</p>
+                            <p><strong>Capacity:</strong> {{ venue.capacity }} people</p>
+                            <p><strong>Created:</strong> {{ venue.created_at|date:"M d, Y" }}</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Impact Assessment</h6>
+                            <p><strong>Events:</strong> {{ venue.events.count }} event{{ venue.events.count|pluralize }}</p>
+                            <p><strong>Bookings:</strong> {{ venue.booking_requests.count }} request{{ venue.booking_requests.count|pluralize }}</p>
+                            <p><strong>Rating:</strong> {{ venue.average_rating|floatformat:1|default:"No ratings yet" }}</p>
+                            <p><strong>Status:</strong> 
+                                {% if venue.is_active %}
+                                    <span class="text-success">Active</span>
+                                {% else %}
+                                    <span class="text-secondary">Inactive</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Alternative Actions -->
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">Consider these alternatives instead:</h6>
+                        <ul class="mb-0">
+                            <li><strong>Deactivate</strong> the venue to hide it from bookings without losing data</li>
+                            <li><strong>Edit</strong> the venue information to update outdated details</li>
+                            <li><strong>Transfer ownership</strong> to another venue manager (contact admin)</li>
+                        </ul>
+                    </div>
+
+                    <!-- Delete Form -->
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="confirm-delete" required>
+                            <label class="form-check-label" for="confirm-delete">
+                                <strong>I understand that this action is permanent and cannot be undone.</strong>
+                            </label>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <a href="{% url 'venues:manage_venue' venue.slug %}" class="btn btn-outline-secondary me-2">
+                                    <i class="fas fa-arrow-left me-2"></i>Cancel
+                                </a>
+                                <a href="{% url 'venues:edit_venue' venue.slug %}" class="btn btn-primary me-2">
+                                    <i class="fas fa-edit me-2"></i>Edit Instead
+                                </a>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-danger" id="delete-btn" disabled>
+                                <i class="fas fa-trash me-2"></i>
+                                Permanently Delete Venue
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="text-center mt-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center">
+                        <li class="breadcrumb-item"><a href="{% url 'venues:venue_list' %}">All Venues</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'venues:manage_venue' venue.slug %}">{{ venue.name }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Delete</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Enable/disable delete button based on checkbox
+    document.getElementById('confirm-delete').addEventListener('change', function() {
+        const deleteBtn = document.getElementById('delete-btn');
+        deleteBtn.disabled = !this.checked;
+        
+        if (this.checked) {
+            deleteBtn.classList.remove('btn-secondary');
+            deleteBtn.classList.add('btn-danger');
+        } else {
+            deleteBtn.classList.remove('btn-danger');
+            deleteBtn.classList.add('btn-secondary');
+        }
+    });
+
+    // Double confirmation on form submit
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (!confirm('Are you absolutely sure you want to delete "{{ venue.name }}"? This action cannot be undone.')) {
+            e.preventDefault();
+        }
+    });
+</script>
+{% endblock %}

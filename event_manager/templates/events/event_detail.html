@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ event.title }} - EventEase{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Event Header -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            {% if event.poster_image %}
+                <img src="{{ event.poster_image.url }}" class="img-fluid rounded" alt="{{ event.title }}" style="width: 100%; height: 400px; object-fit: cover;">
+            {% else %}
+                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 400px;">
+                    <i class="fas fa-calendar-alt fa-5x text-muted"></i>
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-lg-4">
+            <h1>{{ event.title }}</h1>
+            <p class="lead">{{ event.description|truncatewords:30 }}</p>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Event Details</h5>
+                    
+                    <div class="mb-2">
+                        <i class="fas fa-tag me-2"></i>
+                        <strong>Category:</strong> {{ event.category.name }}
+                    </div>
+                    
+                    <div class="mb-2">
+                        <i class="fas fa-calendar me-2"></i>
+                        <strong>Date:</strong> {{ event.event_date|date:"l, F d, Y" }}
+                    </div>
+                    
+                    <div class="mb-2">
+                        <i class="fas fa-clock me-2"></i>
+                        <strong>Time:</strong> {{ event.start_time|time:"H:i" }} - {{ event.end_time|time:"H:i" }}
+                    </div>
+                    
+                    <div class="mb-2">
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        <strong>Venue:</strong> {{ event.venue.name }}
+                    </div>
+                    
+                    <div class="mb-2">
+                        <i class="fas fa-dollar-sign me-2"></i>
+                        <strong>Price:</strong> ${{ event.base_price }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <i class="fas fa-users me-2"></i>
+                        <strong>Available Seats:</strong> 
+                        <span class="badge bg-info">{{ event.available_seats }}/{{ event.total_seats }}</span>
+                    </div>
+                    
+                    {% if event.age_restriction %}
+                        <div class="mb-2">
+                            <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                            <strong>Age Restriction:</strong> {{ event.age_restriction }}+
+                        </div>
+                    {% endif %}
+                    
+                    {% if user.is_authenticated %}
+                        {% if not user_has_ticket %}
+                            {% if event.available_seats > 0 %}
+                                <div class="d-grid">
+                                    <a href="{% url 'events:book_ticket' event.pk %}" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-ticket-alt me-2"></i>Book Tickets
+                                    </a>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Sold Out
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>You have tickets for this event
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="d-grid">
+                            <a href="{% url 'users:login' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login to Book
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Event Description -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">About This Event</h5>
+                    <p>{{ event.description }}</p>
+                    
+                    {% if event.special_instructions %}
+                        <div class="alert alert-info mt-3">
+                            <h6><i class="fas fa-info-circle me-2"></i>Special Instructions</h6>
+                            <p class="mb-0">{{ event.special_instructions }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Venue Information -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Venue Information</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>{{ event.venue.name }}</h6>
+                            <p>{{ event.venue.address }}</p>
+                            <p>{{ event.venue.city }}, {{ event.venue.state }} {{ event.venue.postal_code }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Capacity:</strong> {{ event.venue.capacity }} people</p>
+                            {% if event.venue.has_parking %}<span class="badge bg-success me-1">Parking</span>{% endif %}
+                            {% if event.venue.has_wifi %}<span class="badge bg-success me-1">WiFi</span>{% endif %}
+                            {% if event.venue.has_accessibility %}<span class="badge bg-success me-1">Accessible</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Comments Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Discussion</h5>
+                    
+                    {% if user.is_authenticated %}
+                        <form method="post" action="{% url 'reviews:create_comment' event.pk %}" class="mb-4">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <textarea class="form-control" rows="3" name="content" placeholder="Share your thoughts about this event..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-comment me-1"></i>Post Comment
+                            </button>
+                        </form>
+                    {% endif %}
+                    
+                    {% if comments %}
+                        {% for comment in comments %}
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <strong>{{ comment.user.get_full_name|default:comment.user.username }}</strong>
+                                    <small class="text-muted">{{ comment.created_at|date:"M d, Y H:i" }}</small>
+                                </div>
+                                <p class="mt-2 mb-0">{{ comment.content }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No comments yet. Be the first to share your thoughts!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

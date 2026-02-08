@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create New Event - EventEase{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-calendar-plus me-2"></i>Create New Event
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Basic Information</h5>
+                            </div>
+                            
+                            <div class="col-md-8 mb-3">
+                                <label for="title" class="form-label">Event Title *</label>
+                                <input type="text" class="form-control" id="title" name="title" required placeholder="Give your event a catchy title">
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="category" class="form-label">Category *</label>
+                                <div class="d-flex">
+                                    <select class="form-select me-2" id="category" name="category" required>
+                                        <option value="">Select Category</option>
+                                        {% for category in categories %}
+                                            <option value="{{ category.id }}">{{ category.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <a href="{% url 'events:create_category' %}" class="btn btn-outline-primary" 
+                                       target="_blank" title="Create new category">
+                                        <i class="fas fa-plus"></i>
+                                    </a>
+                                </div>
+                                <div class="form-text">
+                                    Don't see the right category? 
+                                    <a href="{% url 'events:create_category' %}" target="_blank">Create a new one</a>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="description" class="form-label">Description *</label>
+                                <textarea class="form-control" id="description" name="description" rows="5" required 
+                                          placeholder="Describe your event in detail. What can attendees expect? What makes it special?"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Date & Time -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Date & Time</h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="start_date" class="form-label">Start Date & Time *</label>
+                                <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="end_date" class="form-label">End Date & Time *</label>
+                                <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="registration_deadline" class="form-label">Registration Deadline</label>
+                                <input type="datetime-local" class="form-control" id="registration_deadline" name="registration_deadline">
+                                <div class="form-text">Leave blank to allow registration until event starts</div>
+                            </div>
+                        </div>
+
+                        <!-- Venue Selection -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Venue</h5>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="venue" class="form-label">Select Venue *</label>
+                                <select class="form-select" id="venue" name="venue" required>
+                                    <option value="">Choose a venue for your event</option>
+                                    {% for venue in available_venues %}
+                                        <option value="{{ venue.id }}" 
+                                                data-capacity="{{ venue.capacity }}" 
+                                                data-rate="{{ venue.hourly_rate }}">
+                                            {{ venue.name }} - {{ venue.address }} (Capacity: {{ venue.capacity }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">
+                                    Don't see your preferred venue? 
+                                    <a href="{% url 'venues:venue_list' %}" target="_blank">Browse all venues</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Capacity & Ticketing -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Capacity & Ticketing</h5>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="max_capacity" class="form-label">Max Capacity *</label>
+                                <input type="number" class="form-control" id="max_capacity" name="max_capacity" min="1" required>
+                                <div class="form-text" id="venue-capacity-hint">Select a venue first</div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="min_capacity" class="form-label">Minimum Capacity</label>
+                                <input type="number" class="form-control" id="min_capacity" name="min_capacity" min="1">
+                                <div class="form-text">Minimum attendees needed to proceed</div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="requires_approval" name="requires_approval">
+                                    <label class="form-check-label" for="requires_approval">
+                                        Require approval for bookings
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ticket Pricing -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Ticket Pricing</h5>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="is_free" name="is_free">
+                                    <label class="form-check-label" for="is_free">
+                                        This is a free event
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div id="pricing-section">
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">Ticket Types</label>
+                                    <div id="ticket-types">
+                                        <div class="ticket-type row mb-3 border p-3 rounded">
+                                            <div class="col-md-4">
+                                                <label class="form-label">Ticket Name</label>
+                                                <input type="text" class="form-control" name="ticket_name[]" placeholder="e.g., General Admission">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Price ($)</label>
+                                                <input type="number" class="form-control" name="ticket_price[]" min="0" step="0.01">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label">Quantity</label>
+                                                <input type="number" class="form-control" name="ticket_quantity[]" min="1">
+                                            </div>
+                                            <div class="col-md-2 d-flex align-items-end">
+                                                <button type="button" class="btn btn-outline-danger remove-ticket-type" disabled>
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary" id="add-ticket-type">
+                                        <i class="fas fa-plus me-2"></i>Add Ticket Type
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Event Image -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Event Image</h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="image" class="form-label">Event Poster/Image</label>
+                                <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                                <div class="form-text">Upload an attractive image for your event</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div id="image-preview" class="d-none">
+                                    <img id="preview-img" src="" class="img-fluid rounded" style="max-height: 200px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Options -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="border-bottom pb-2 mb-3">Additional Options</h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                    <label class="form-check-label" for="is_active">
+                                        Active (Allow ticket bookings)
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured">
+                                    <label class="form-check-label" for="is_featured">
+                                        Feature this event on homepage
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="row">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'events:manager_dashboard' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Cancel
+                                    </a>
+                                    <div>
+                                        <button type="submit" name="action" value="draft" class="btn btn-outline-primary me-2">
+                                            <i class="fas fa-save me-2"></i>Save as Draft
+                                        </button>
+                                        <button type="submit" name="action" value="publish" class="btn btn-primary">
+                                            <i class="fas fa-rocket me-2"></i>Create & Publish Event
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Venue selection handler
+document.getElementById('venue').addEventListener('change', function(e) {
+    const selectedOption = e.target.options[e.target.selectedIndex];
+    const capacity = selectedOption.dataset.capacity;
+    const rate = selectedOption.dataset.rate;
+    
+    if (capacity) {
+        document.getElementById('max_capacity').max = capacity;
+        document.getElementById('max_capacity').placeholder = `Max: ${capacity}`;
+        document.getElementById('venue-capacity-hint').textContent = `Venue capacity: ${capacity}`;
+    }
+});
+
+// Free event toggle
+document.getElementById('is_free').addEventListener('change', function(e) {
+    const pricingSection = document.getElementById('pricing-section');
+    if (e.target.checked) {
+        pricingSection.style.display = 'none';
+    } else {
+        pricingSection.style.display = 'block';
+    }
+});
+
+// Add/Remove ticket types
+let ticketTypeCount = 1;
+
+document.getElementById('add-ticket-type').addEventListener('click', function() {
+    ticketTypeCount++;
+    const ticketTypesContainer = document.getElementById('ticket-types');
+    const newTicketType = document.querySelector('.ticket-type').cloneNode(true);
+    
+    // Clear inputs
+    newTicketType.querySelectorAll('input').forEach(input => input.value = '');
+    newTicketType.querySelector('.remove-ticket-type').disabled = false;
+    
+    ticketTypesContainer.appendChild(newTicketType);
+    updateRemoveButtons();
+});
+
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('remove-ticket-type') || e.target.closest('.remove-ticket-type')) {
+        e.target.closest('.ticket-type').remove();
+        ticketTypeCount--;
+        updateRemoveButtons();
+    }
+});
+
+function updateRemoveButtons() {
+    const removeButtons = document.querySelectorAll('.remove-ticket-type');
+    removeButtons.forEach((button, index) => {
+        button.disabled = removeButtons.length === 1;
+    });
+}
+
+// Image preview
+document.getElementById('image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview-img').src = e.target.result;
+            document.getElementById('image-preview').classList.remove('d-none');
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Set minimum date to today
+const today = new Date();
+const dateString = today.toISOString().slice(0, 16);
+document.getElementById('start_date').min = dateString;
+document.getElementById('end_date').min = dateString;
+document.getElementById('registration_deadline').min = dateString;
+
+// Update end date minimum when start date changes
+document.getElementById('start_date').addEventListener('change', function(e) {
+    document.getElementById('end_date').min = e.target.value;
+    document.getElementById('registration_deadline').max = e.target.value;
+});
+</script>
+{% endblock %}

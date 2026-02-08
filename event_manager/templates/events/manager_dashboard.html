@@ -1,0 +1,345 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Horizon Planner Dashboard - Horizon Planner{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-calendar-alt me-2"></i>Horizon Planner Dashboard</h2>
+                <a href="{% url 'events:create_event' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Create New Event
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_events }}</h4>
+                            <p class="card-text">My Events</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-alt fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ active_events }}</h4>
+                            <p class="card-text">Active Events</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-play fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_tickets_sold }}</h4>
+                            <p class="card-text">Tickets Sold</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-ticket-alt fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">${{ total_revenue|floatformat:0 }}</h4>
+                            <p class="card-text">Total Revenue</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-dollar-sign fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- My Events -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">My Events</h5>
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="eventFilter" id="allEvents" checked>
+                        <label class="btn btn-outline-primary" for="allEvents">All</label>
+                        
+                        <input type="radio" class="btn-check" name="eventFilter" id="upcomingEvents">
+                        <label class="btn btn-outline-primary" for="upcomingEvents">Upcoming</label>
+                        
+                        <input type="radio" class="btn-check" name="eventFilter" id="pastEvents">
+                        <label class="btn btn-outline-primary" for="pastEvents">Past</label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if events %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Date</th>
+                                        <th>Venue</th>
+                                        <th>Status</th>
+                                        <th>Tickets</th>
+                                        <th>Revenue</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in events %}
+                                        <tr data-status="{% if event.is_upcoming %}upcoming{% elif event.is_past %}past{% endif %}">
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if event.image %}
+                                                        <img src="{{ event.image.url }}" 
+                                                             class="rounded me-3" 
+                                                             style="width: 50px; height: 50px; object-fit: cover;">
+                                                    {% else %}
+                                                        <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" 
+                                                             style="width: 50px; height: 50px;">
+                                                            <i class="fas fa-calendar text-muted"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <strong>{{ event.title }}</strong><br>
+                                                        <small class="text-muted">{{ event.category.name }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <strong>{{ event.start_date|date:"M d, Y" }}</strong><br>
+                                                <small class="text-muted">{{ event.start_date|date:"g:i A" }}</small>
+                                            </td>
+                                            <td>
+                                                <strong>{{ event.venue.name }}</strong><br>
+                                                <small class="text-muted">{{ event.venue.address|truncatechars:25 }}</small>
+                                            </td>
+                                            <td>
+                                                {% if event.is_active %}
+                                                    {% if event.is_upcoming %}
+                                                        <span class="badge bg-success">Upcoming</span>
+                                                    {% elif event.is_ongoing %}
+                                                        <span class="badge bg-warning">Ongoing</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">Completed</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="text-center">
+                                                    <strong>{{ event.tickets_sold }}</strong> / {{ event.max_capacity }}
+                                                    <div class="progress mt-1" style="height: 4px;">
+                                                        <div class="progress-bar" style="width: {{ event.capacity_percentage }}%"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-success fw-bold">${{ event.revenue|floatformat:0 }}</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'events:event_detail' event.slug %}" 
+                                                       class="btn btn-outline-primary btn-sm" title="View">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{% url 'events:edit_event' event.slug %}" 
+                                                       class="btn btn-outline-secondary btn-sm" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="{% url 'events:manage_event' event.slug %}" 
+                                                       class="btn btn-outline-info btn-sm" title="Manage">
+                                                        <i class="fas fa-cogs"></i>
+                                                    </a>
+                                                    <a href="{% url 'events:event_analytics' event.slug %}" 
+                                                       class="btn btn-outline-success btn-sm" title="Analytics">
+                                                        <i class="fas fa-chart-line"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-alt text-muted" style="font-size: 4rem;"></i>
+                            <h4 class="mt-3 text-muted">No Events Yet</h4>
+                            <p class="text-muted">Create your first event to get started.</p>
+                            <a href="{% url 'events:create_event' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Create Your First Event
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Stats -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">This Month</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 border-end">
+                            <h4 class="text-primary">{{ monthly_events }}</h4>
+                            <small class="text-muted">New Events</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">{{ monthly_tickets }}</h4>
+                            <small class="text-muted">Tickets Sold</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-6 border-end">
+                            <h4 class="text-warning">${{ monthly_revenue|floatformat:0 }}</h4>
+                            <small class="text-muted">Revenue</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-info">{{ avg_rating|floatformat:1 }}</h4>
+                            <small class="text-muted">Avg Rating</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Events -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Upcoming Events</h6>
+                    <span class="badge bg-primary">{{ upcoming_events.count }}</span>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_events %}
+                        {% for event in upcoming_events|slice:":5" %}
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ event.title|truncatechars:20 }}</h6>
+                                    <p class="mb-1 text-muted small">{{ event.venue.name }}</p>
+                                    <small class="text-muted">{{ event.start_date|date:"M d, g:i A" }}</small>
+                                </div>
+                                <span class="badge bg-success">{{ event.tickets_sold }}</span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No upcoming events.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'events:create_event' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-plus me-2"></i>Create Event
+                        </a>
+                        <a href="{% url 'events:event_analytics' %}" class="btn btn-outline-success">
+                            <i class="fas fa-chart-line me-2"></i>View Analytics
+                        </a>
+                        <a href="{% url 'venues:venue_list' %}" class="btn btn-outline-info">
+                            <i class="fas fa-building me-2"></i>Browse Venues
+                        </a>
+                        <a href="#" class="btn btn-outline-warning">
+                            <i class="fas fa-download me-2"></i>Export Data
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Revenue Trend</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="revenueChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Event filtering
+document.querySelectorAll('input[name="eventFilter"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const filter = this.id;
+        const rows = document.querySelectorAll('tbody tr[data-status]');
+        
+        rows.forEach(row => {
+            if (filter === 'allEvents') {
+                row.style.display = '';
+            } else if (filter === 'upcomingEvents') {
+                row.style.display = row.dataset.status === 'upcoming' ? '' : 'none';
+            } else if (filter === 'pastEvents') {
+                row.style.display = row.dataset.status === 'past' ? '' : 'none';
+            }
+        });
+    });
+});
+
+// Revenue Chart
+const ctx = document.getElementById('revenueChart').getContext('2d');
+const revenueChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+            label: 'Revenue ($)',
+            data: [1200, 1900, 800, 1500, 2000, 1800],
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

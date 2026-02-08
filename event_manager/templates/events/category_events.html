@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ category.name }} Events - Horizon Planner{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/events.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Category Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="category-icon me-3" style="color: {{ category.color }};">
+                            {% if category.icon %}
+                                <i class="{{ category.icon }} fa-2x"></i>
+                            {% else %}
+                                <i class="fas fa-tag fa-2x"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <h2 class="mb-1">{{ category.name }} Events</h2>
+                            {% if category.description %}
+                                <p class="text-muted mb-0">{{ category.description }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-primary fs-6">{{ events|length }} Event{{ events|length|pluralize }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'events:home' %}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'events:event_list' %}">Events</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Events Grid -->
+    <div class="row">
+        {% if events %}
+            {% for event in events %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 event-card">
+                        <!-- Event Image -->
+                        <div class="position-relative">
+                            {% if event.image %}
+                                <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+                            {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="fas fa-calendar-alt fa-3x text-muted"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Category Badge -->
+                            <span class="position-absolute top-0 start-0 m-2 badge" style="background-color: {{ event.category.color }};">
+                                {% if event.category.icon %}
+                                    <i class="{{ event.category.icon }} me-1"></i>
+                                {% endif %}
+                                {{ event.category.name }}
+                            </span>
+                            
+                            <!-- Price Badge -->
+                            {% if event.price %}
+                                <span class="position-absolute top-0 end-0 m-2 badge bg-success">
+                                    ${{ event.price }}
+                                </span>
+                            {% else %}
+                                <span class="position-absolute top-0 end-0 m-2 badge bg-info">
+                                    Free
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ event.title }}</h5>
+                            <p class="card-text text-muted flex-grow-1">{{ event.description|truncatewords:20 }}</p>
+                            
+                            <!-- Event Details -->
+                            <div class="event-details mb-3">
+                                <div class="row text-sm">
+                                    <div class="col-12 mb-2">
+                                        <i class="fas fa-calendar-alt text-primary me-2"></i>
+                                        <span>{{ event.start_date|date:"M d, Y" }}</span>
+                                        {% if event.start_time %}
+                                            <span class="ms-1">at {{ event.start_time|time:"g:i A" }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-12 mb-2">
+                                        <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                                        <a href="{% url 'venues:venue_detail' event.venue.slug %}" class="text-decoration-none">
+                                            {{ event.venue.name }}
+                                        </a>
+                                    </div>
+                                    <div class="col-12">
+                                        <i class="fas fa-users text-info me-2"></i>
+                                        <span>{{ event.capacity }} capacity</span>
+                                        {% if event.remaining_tickets %}
+                                            <span class="text-success ms-2">({{ event.remaining_tickets }} available)</span>
+                                        {% else %}
+                                            <span class="text-danger ms-2">(Sold out)</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="mt-auto">
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'events:event_detail' event.slug %}" class="btn btn-outline-primary flex-grow-1">
+                                        <i class="fas fa-info-circle me-1"></i>Details
+                                    </a>
+                                    {% if event.remaining_tickets > 0 %}
+                                        <a href="{% url 'events:book_ticket' event.slug %}" class="btn btn-primary">
+                                            <i class="fas fa-ticket-alt me-1"></i>Book
+                                        </a>
+                                    {% else %}
+                                        <button class="btn btn-secondary" disabled>
+                                            <i class="fas fa-times me-1"></i>Sold Out
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <!-- No Events Message -->
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <div class="mb-4" style="color: {{ category.color }};">
+                            {% if category.icon %}
+                                <i class="{{ category.icon }} fa-4x"></i>
+                            {% else %}
+                                <i class="fas fa-tag fa-4x"></i>
+                            {% endif %}
+                        </div>
+                        <h4 class="mb-3">No Events in {{ category.name }}</h4>
+                        <p class="text-muted mb-4">There are currently no events in this category. Check back soon!</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <a href="{% url 'events:event_list' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-calendar me-2"></i>Browse All Events
+                            </a>
+                            <a href="{% url 'events:home' %}" class="btn btn-primary">
+                                <i class="fas fa-home me-2"></i>Back to Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+        <div class="row mt-5">
+            <div class="col-12">
+                <nav aria-label="Events pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1" aria-label="First">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for i in paginator.page_range %}
+                            {% if page_obj.number == i %}
+                                <li class="page-item active" aria-current="page">
+                                    <span class="page-link">{{ i }}</span>
+                                </li>
+                            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ paginator.num_pages }}" aria-label="Last">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add hover effects to event cards
+    document.querySelectorAll('.event-card').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '';
+        });
+    });
+</script>
+{% endblock %}

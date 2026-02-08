@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage {{ venue.name }} - Horizon Planner{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/venues.css' %}">
+<style>
+    .venue-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .stats-card {
+        transition: transform 0.2s;
+    }
+    .stats-card:hover {
+        transform: translateY(-2px);
+    }
+    .amenity-icon {
+        font-size: 1.2rem;
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Venue Header -->
+    <div class="venue-hero">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="mb-2">{{ venue.name }}</h1>
+                <p class="mb-3 opacity-75">{{ venue.city }}, {{ venue.state }}</p>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    {% if venue.is_active %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                    <span class="badge bg-light text-dark">{{ venue.capacity }} Capacity</span>
+                    <span class="badge bg-light text-dark">${{ venue.hourly_rate }}/hour</span>
+                </div>
+            </div>
+            <div class="text-end">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'venues:edit_venue' venue.slug %}" class="btn btn-light">
+                        <i class="fas fa-edit me-2"></i>Edit
+                    </a>
+                    <a href="{% url 'venues:venue_detail' venue.slug %}" class="btn btn-outline-light" target="_blank">
+                        <i class="fas fa-eye me-2"></i>View Public
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-primary mb-2">
+                        <i class="fas fa-calendar-check fa-2x"></i>
+                    </div>
+                    <h4 class="mb-1">{{ venue.events.count }}</h4>
+                    <p class="text-muted mb-0">Total Events</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-warning mb-2">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                    <h4 class="mb-1">{{ pending_bookings_count|default:0 }}</h4>
+                    <p class="text-muted mb-0">Pending Bookings</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-success mb-2">
+                        <i class="fas fa-star fa-2x"></i>
+                    </div>
+                    <h4 class="mb-1">{{ venue.average_rating|floatformat:1|default:"N/A" }}</h4>
+                    <p class="text-muted mb-0">Average Rating</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="text-info mb-2">
+                        <i class="fas fa-dollar-sign fa-2x"></i>
+                    </div>
+                    <h4 class="mb-1">${{ total_revenue|floatformat:0|default:0 }}</h4>
+                    <p class="text-muted mb-0">Total Revenue</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Venue Details -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Venue Details</h5>
+                    <a href="{% url 'venues:edit_venue' venue.slug %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-edit me-1"></i>Edit Details
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Description</h6>
+                            <p class="mb-3">{{ venue.description|truncatewords:30 }}</p>
+                            
+                            <h6 class="text-muted mb-2">Location</h6>
+                            <p class="mb-1">{{ venue.address }}</p>
+                            <p class="mb-3">{{ venue.city }}, {{ venue.state }} {{ venue.postal_code }}</p>
+                            
+                            <h6 class="text-muted mb-2">Contact Information</h6>
+                            <p class="mb-1"><strong>{{ venue.contact_person }}</strong></p>
+                            <p class="mb-1"><i class="fas fa-envelope me-2"></i>{{ venue.contact_email }}</p>
+                            <p class="mb-3"><i class="fas fa-phone me-2"></i>{{ venue.contact_phone }}</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Specifications</h6>
+                            <p class="mb-1"><strong>Capacity:</strong> {{ venue.capacity }} people</p>
+                            {% if venue.area_sqft %}
+                                <p class="mb-3"><strong>Area:</strong> {{ venue.area_sqft }} sq ft</p>
+                            {% endif %}
+                            
+                            <h6 class="text-muted mb-2">Pricing</h6>
+                            <p class="mb-1"><strong>Hourly Rate:</strong> ${{ venue.hourly_rate }}</p>
+                            {% if venue.daily_rate %}
+                                <p class="mb-3"><strong>Daily Rate:</strong> ${{ venue.daily_rate }}</p>
+                            {% endif %}
+                            
+                            <h6 class="text-muted mb-2">Amenities</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% if venue.has_parking %}
+                                    <span class="badge bg-primary"><i class="fas fa-parking amenity-icon"></i>Parking</span>
+                                {% endif %}
+                                {% if venue.has_wifi %}
+                                    <span class="badge bg-primary"><i class="fas fa-wifi amenity-icon"></i>WiFi</span>
+                                {% endif %}
+                                {% if venue.has_catering %}
+                                    <span class="badge bg-primary"><i class="fas fa-utensils amenity-icon"></i>Catering</span>
+                                {% endif %}
+                                {% if venue.has_av_equipment %}
+                                    <span class="badge bg-primary"><i class="fas fa-microphone amenity-icon"></i>A/V Equipment</span>
+                                {% endif %}
+                                {% if venue.has_accessibility %}
+                                    <span class="badge bg-primary"><i class="fas fa-wheelchair amenity-icon"></i>Accessible</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Events -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Events</h5>
+                    <a href="{% url 'events:event_list' %}?venue={{ venue.id }}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if venue.events.all %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Date</th>
+                                        <th>Attendees</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in venue.events.all|slice:":5" %}
+                                        <tr>
+                                            <td>
+                                                <div>
+                                                    <strong>{{ event.title }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ event.manager.get_full_name|default:event.manager.username }}</small>
+                                                </div>
+                                            </td>
+                                            <td>{{ event.event_date|date:"M d, Y" }}</td>
+                                            <td>{{ event.total_seats }} capacity</td>
+                                            <td>
+                                                {% if event.status == 'published' %}
+                                                    <span class="badge bg-success">Published</span>
+                                                {% elif event.status == 'draft' %}
+                                                    <span class="badge bg-secondary">Draft</span>
+                                                {% elif event.status == 'cancelled' %}
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No events scheduled at this venue yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'venues:edit_venue' venue.slug %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Venue
+                        </a>
+                        <a href="{% url 'venues:manage_availability' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-calendar-alt me-2"></i>Manage Availability
+                        </a>
+                        <a href="{% url 'venues:venue_bookings' %}" class="btn btn-outline-warning">
+                            <i class="fas fa-clock me-2"></i>View Booking Requests
+                        </a>
+                        <a href="{% url 'venues:venue_analytics' %}" class="btn btn-outline-info">
+                            <i class="fas fa-chart-bar me-2"></i>View Analytics
+                        </a>
+                        <hr class="my-3">
+                        {% if venue.is_active %}
+                            <button class="btn btn-outline-secondary" onclick="toggleVenueStatus(false)">
+                                <i class="fas fa-pause me-2"></i>Deactivate Venue
+                            </button>
+                        {% else %}
+                            <button class="btn btn-outline-success" onclick="toggleVenueStatus(true)">
+                                <i class="fas fa-play me-2"></i>Activate Venue
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Requests -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Pending Requests</h5>
+                    <span class="badge bg-warning">{{ pending_bookings_count|default:0 }}</span>
+                </div>
+                <div class="card-body">
+                    {% if pending_bookings %}
+                        {% for booking in pending_bookings|slice:":3" %}
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <strong>{{ booking.event_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ booking.booking_date|date:"M d, Y" }}</small>
+                                </div>
+                                <div>
+                                    <a href="{% url 'venues:approve_booking' booking.pk %}" class="btn btn-sm btn-success me-1">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                    <a href="{% url 'venues:reject_booking' booking.pk %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        {% if pending_bookings_count > 3 %}
+                            <div class="text-center">
+                                <a href="{% url 'venues:venue_bookings' %}" class="btn btn-sm btn-outline-primary">
+                                    View All {{ pending_bookings_count }} Requests
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-clipboard-check fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">No pending requests</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline" style="max-height: 300px; overflow-y: auto;">
+                        <!-- This would be populated with recent venue activity -->
+                        <div class="text-center py-3">
+                            <i class="fas fa-history fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">Activity tracking coming soon</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleVenueStatus(activate) {
+        if (confirm(activate ? 'Activate this venue?' : 'Deactivate this venue?')) {
+            // This would make an AJAX request to toggle venue status
+            console.log('Toggle venue status:', activate);
+            // For now, just reload the page
+            location.reload();
+        }
+    }
+</script>
+{% endblock %}
