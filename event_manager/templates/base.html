@@ -12,13 +12,230 @@
     <!-- Custom CSS -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var initialTheme = (savedTheme === 'dark' || savedTheme === 'light')
+                    ? savedTheme
+                    : (prefersDark ? 'dark' : 'light');
+
+                if (initialTheme === 'dark') {
+                    document.documentElement.classList.add('dark-mode');
+                    document.documentElement.setAttribute('data-bs-theme', 'dark');
+                }
+            } catch (e) {
+                // Keep page usable if storage access is unavailable.
+            }
+        })();
+    </script>
+    
+    <!-- Inline styles to ensure sidebar is hidden initially -->
+    <style>
+        #sidebar {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 320px !important;
+            height: 100vh !important;
+            z-index: 9999 !important;
+            transform: translateX(-100%) !important;
+            transition: transform 0.3s ease !important;
+            display: block !important;
+            visibility: visible !important;
+        }
+        
+        #sidebar.active {
+            transform: translateX(0) !important;
+        }
+        
+        #sidebarOverlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            z-index: 9998 !important;
+            background-color: rgba(0, 0, 0, 0) !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            transition: all 0.3s ease !important;
+            pointer-events: none !important;
+        }
+        
+        #sidebarOverlay.active {
+            background-color: rgba(0, 0, 0, 0.5) !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+        }
+    </style>
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h5 class="mb-0">
+                <i class="fas fa-calendar-alt me-2"></i>Menu
+            </h5>
+            <button type="button" class="btn-close btn-close-white" id="sidebarClose"></button>
+        </div>
+        
+        <ul class="sidebar-nav">
+            <li class="sidebar-item">
+                <a href="{% url 'events:home' %}" class="sidebar-link">
+                    <i class="fas fa-home me-2"></i>Home
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{% url 'venues:venue_list' %}" class="sidebar-link">
+                    <i class="fas fa-building me-2"></i>Venues
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{% url 'events:event_showcase' %}" class="sidebar-link">
+                    <i class="fas fa-star me-2"></i>Showcase
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{% url 'events:about' %}" class="sidebar-link">
+                    <i class="fas fa-info-circle me-2"></i>About Us
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{% url 'events:contact' %}" class="sidebar-link">
+                    <i class="fas fa-envelope me-2"></i>Contact
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{% url 'events:policy' %}" class="sidebar-link">
+                    <i class="fas fa-file-contract me-2"></i>Privacy & Terms
+                </a>
+            </li>
+            
+            {% if user.is_authenticated %}
+                <li class="sidebar-divider"></li>
+                <li class="sidebar-item">
+                    <a href="{% url 'users:profile' %}" class="sidebar-link">
+                        <i class="fas fa-user me-2"></i>Profile
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'payments:order_history' %}" class="sidebar-link">
+                        <i class="fas fa-shopping-cart me-2"></i>My Orders
+                    </a>
+                </li>
+                
+                {% if user.is_horizon_planner and not user.is_admin_user %}
+                    <li class="sidebar-divider"></li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'events:manager_dashboard' %}" class="sidebar-link">
+                            <i class="fas fa-chart-bar me-2"></i>Planner Dashboard
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'events:create_event' %}" class="sidebar-link">
+                            <i class="fas fa-plus-circle me-2"></i>Create Event
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'events:event_analytics' %}" class="sidebar-link">
+                            <i class="fas fa-chart-line me-2"></i>Analytics
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% if user.is_venue_manager and not user.is_admin_user %}
+                    <li class="sidebar-divider"></li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'venues:manager_dashboard' %}" class="sidebar-link">
+                            <i class="fas fa-chart-bar me-2"></i>Venue Dashboard
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'venues:create_venue' %}" class="sidebar-link">
+                            <i class="fas fa-plus-circle me-2"></i>Add Venue
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'venues:venue_analytics' %}" class="sidebar-link">
+                            <i class="fas fa-chart-line me-2"></i>Analytics
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% if user.is_admin_user %}
+                    <li class="sidebar-divider"></li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'analytics:admin_dashboard' %}" class="sidebar-link">
+                            <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'users:role_requests' %}" class="sidebar-link">
+                            <i class="fas fa-user-check me-2"></i>Role Requests
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'reviews:moderation_dashboard' %}" class="sidebar-link">
+                            <i class="fas fa-shield-alt me-2"></i>Moderation
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'analytics:platform_analytics' %}" class="sidebar-link">
+                            <i class="fas fa-chart-pie me-2"></i>Platform Analytics
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% if user.is_basic_user %}
+                    <li class="sidebar-divider"></li>
+                    <li class="sidebar-item">
+                        <a href="{% url 'users:request_upgrade' %}" class="sidebar-link">
+                            <i class="fas fa-arrow-up me-2"></i>Request Role Upgrade
+                        </a>
+                    </li>
+                {% endif %}
+                
+                <li class="sidebar-divider"></li>
+                <li class="sidebar-item">
+                    <form method="post" action="{% url 'users:logout' %}" style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" class="sidebar-link w-100 text-start border-0 bg-transparent">
+                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                        </button>
+                    </form>
+                </li>
+            {% else %}
+                <li class="sidebar-divider"></li>
+                <li class="sidebar-item">
+                    <a href="{% url 'users:login' %}" class="sidebar-link">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'users:signup' %}" class="sidebar-link">
+                        <i class="fas fa-user-plus me-2"></i>Sign Up
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+    
+    <!-- Sidebar Overlay -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
+        <div class="container-fluid">
+            <button type="button" class="btn btn-outline-light me-2" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
             <a class="navbar-brand" href="{% url 'events:home' %}">
                 <i class="fas fa-calendar-alt me-2"></i>Horizon-Planners
             </a>
@@ -39,9 +256,14 @@
                             <i class="fas fa-building me-1"></i>Venues
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'events:event_showcase' %}">
+                            <i class="fas fa-star me-1"></i>Showcase
+                        </a>
+                    </li>
                     
                     {% if user.is_authenticated %}
-                        {% if user.is_horizon_planner or user.is_admin_user %}
+                        {% if user.is_horizon_planner and not user.is_admin_user %}
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                                     <i class="fas fa-calendar-plus me-1"></i>Horizon Planner
@@ -54,7 +276,7 @@
                             </li>
                         {% endif %}
                         
-                        {% if user.is_venue_manager or user.is_admin_user %}
+                        {% if user.is_venue_manager and not user.is_admin_user %}
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                                     <i class="fas fa-building me-1"></i>Venue Manager
@@ -73,10 +295,21 @@
                                     <i class="fas fa-cog me-1"></i>Admin
                                 </a>
                                 <ul class="dropdown-menu">
+                                    <li><h6 class="dropdown-header">Admin Controls</h6></li>
                                     <li><a class="dropdown-item" href="{% url 'analytics:admin_dashboard' %}">Dashboard</a></li>
                                     <li><a class="dropdown-item" href="{% url 'users:role_requests' %}">Role Requests</a></li>
                                     <li><a class="dropdown-item" href="{% url 'reviews:moderation_dashboard' %}">Moderation</a></li>
                                     <li><a class="dropdown-item" href="{% url 'analytics:platform_analytics' %}">Analytics</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Horizon Planner</h6></li>
+                                    <li><a class="dropdown-item" href="{% url 'events:manager_dashboard' %}">Planner Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'events:create_event' %}">Create Event</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'events:event_analytics' %}">Event Analytics</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Venue Manager</h6></li>
+                                    <li><a class="dropdown-item" href="{% url 'venues:manager_dashboard' %}">Venue Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'venues:create_venue' %}">Add Venue</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'venues:venue_analytics' %}">Venue Analytics</a></li>
                                 </ul>
                             </li>
                         {% endif %}
@@ -84,13 +317,19 @@
                 </ul>
                 
                 <ul class="navbar-nav">
+                    <li class="nav-item me-2">
+                        <button type="button" id="nightModeToggle" class="btn btn-outline-light" title="Toggle Night Mode">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </li>
+                    
                     {% if user.is_authenticated %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                                 <i class="fas fa-user me-1"></i>{{ user.username }}
                                 <span class="badge bg-secondary ms-1">{{ user.get_role_display }}</span>
                             </a>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="{% url 'users:profile' %}">Profile</a></li>
                                 <li><a class="dropdown-item" href="{% url 'payments:order_history' %}">My Orders</a></li>
                                 {% if user.is_basic_user %}
@@ -145,12 +384,88 @@
     <footer class="bg-dark text-light py-4 mt-5">
         <div class="container">
             <div class="row">
-                <div class="col-md-6">
-                    <h5>Horizon-Planners</h5>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5 class="mb-3">
+                        <i class="fas fa-calendar-alt me-2"></i>Horizon-Planners
+                    </h5>
                     <p>Your premier event management platform</p>
+                    <div class="social-links mt-3">
+                        <a href="https://facebook.com" target="_blank" class="text-light me-3">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://twitter.com" target="_blank" class="text-light me-3">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="https://linkedin.com" target="_blank" class="text-light me-3">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="https://instagram.com" target="_blank" class="text-light">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                    </div>
                 </div>
-                <div class="col-md-6 text-end">
-                    <p>&copy; {% now "Y" %} Horizon-Planners. All rights reserved.</p>
+                
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5 class="mb-3">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="{% url 'events:home' %}" class="text-light text-decoration-none">
+                                <i class="fas fa-home me-2"></i>Home
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'events:about' %}" class="text-light text-decoration-none">
+                                <i class="fas fa-info-circle me-2"></i>About Us
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'events:contact' %}" class="text-light text-decoration-none">
+                                <i class="fas fa-envelope me-2"></i>Contact
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'venues:venue_list' %}" class="text-light text-decoration-none">
+                                <i class="fas fa-building me-2"></i>Venues
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'events:event_showcase' %}" class="text-light text-decoration-none">
+                                <i class="fas fa-star me-2"></i>Showcase
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-4">
+                    <h5 class="mb-3">Legal</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <a href="{% url 'events:policy' %}" class="text-light text-decoration-none">
+                                <i class="fas fa-file-contract me-2"></i>Privacy & Terms
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="#" class="text-light text-decoration-none">
+                                <i class="fas fa-shield-alt me-2"></i>Security
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="mailto:support@horizonplanners.com" class="text-light text-decoration-none">
+                                <i class="fas fa-envelope me-2"></i>Email Support
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <hr class="bg-secondary">
+            
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; {% now "Y" %} Horizon-Planners. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">Made with <i class="fas fa-heart text-danger"></i> for event enthusiasts</p>
                 </div>
             </div>
         </div>
@@ -158,6 +473,111 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Sidebar and Night Mode Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sidebar functionality
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarClose = document.getElementById('sidebarClose');
+            const body = document.body;
+            function closeSidebar() {
+                if (sidebar) sidebar.classList.remove('active');
+                if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+                body.classList.remove('sidebar-open');
+            }
+
+            if (sidebarToggle && sidebar && sidebarOverlay) {
+                sidebarToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    sidebar.classList.add('active');
+                    sidebarOverlay.classList.add('active');
+                    body.classList.add('sidebar-open');
+                });
+            }
+
+            if (sidebarClose) {
+                sidebarClose.addEventListener('click', closeSidebar);
+            }
+
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', closeSidebar);
+            }
+
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', closeSidebar);
+            });
+
+            // Night mode functionality
+            const nightModeToggle = document.getElementById('nightModeToggle');
+            const htmlElement = document.documentElement;
+
+            function applyTheme(theme) {
+                const isDark = theme === 'dark';
+                htmlElement.classList.toggle('dark-mode', isDark);
+                body.classList.toggle('dark-mode', isDark);
+
+                if (isDark) {
+                    htmlElement.setAttribute('data-bs-theme', 'dark');
+                } else {
+                    htmlElement.removeAttribute('data-bs-theme');
+                }
+
+                if (nightModeToggle) {
+                    nightModeToggle.innerHTML = isDark
+                        ? '<i class="fas fa-sun"></i>'
+                        : '<i class="fas fa-moon"></i>';
+                    nightModeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+                }
+            }
+
+            let savedTheme = null;
+            try {
+                savedTheme = localStorage.getItem('theme');
+            } catch (e) {
+                savedTheme = null;
+            }
+
+            const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            const initialTheme = savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : preferredTheme;
+            applyTheme(initialTheme);
+
+            document.addEventListener('click', function(e) {
+                const toggleButton = e.target.closest('#nightModeToggle');
+                if (!toggleButton) {
+                    return;
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (nightModeToggle) {
+                    const nextTheme = htmlElement.classList.contains('dark-mode') ? 'light' : 'dark';
+                    applyTheme(nextTheme);
+                    try {
+                        localStorage.setItem('theme', nextTheme);
+                    } catch (e) {
+                        // Ignore storage write failures and keep runtime toggle working.
+                    }
+                }
+            });
+
+            const currentPath = window.location.pathname.replace(/\/$/, '');
+            const navLinks = document.querySelectorAll('#sidebar .sidebar-link[href]');
+            navLinks.forEach(function(link) {
+                const linkUrl = new URL(link.href, window.location.origin);
+                const linkPath = linkUrl.pathname.replace(/\/$/, '');
+                if (linkPath && linkPath === currentPath) {
+                    link.classList.add('active');
+                    link.setAttribute('aria-current', 'page');
+                }
+            });
+        });
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

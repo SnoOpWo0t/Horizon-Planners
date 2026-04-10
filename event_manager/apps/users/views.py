@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.http import JsonResponse
+from django.db import IntegrityError
 from .models import User, RoleUpgradeRequest
 from .forms import CustomUserCreationForm, ProfileUpdateForm, RoleUpgradeRequestForm
 
@@ -60,6 +61,38 @@ class ProfileView(LoginRequiredMixin, DetailView):
     
     def get_object(self):
         return self.request.user
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        remove_picture = request.POST.get('remove_profile_picture') == '1'
+        uploaded_picture = request.FILES.get('profile_picture')
+
+        if remove_picture:
+            if user.profile_picture:
+                user.profile_picture.delete(save=False)
+            user.profile_picture = None
+            user.save(update_fields=['profile_picture', 'updated_at'])
+            messages.success(request, 'Profile picture removed successfully.')
+            return redirect('users:profile')
+
+        if not uploaded_picture:
+            messages.warning(request, 'Please choose an image to upload.')
+            return redirect('users:profile')
+
+        content_type = getattr(uploaded_picture, 'content_type', '') or ''
+        if not content_type.startswith('image/'):
+            messages.error(request, 'Only image files are allowed for profile pictures.')
+            return redirect('users:profile')
+
+        max_size_bytes = 5 * 1024 * 1024
+        if uploaded_picture.size > max_size_bytes:
+            messages.error(request, 'Profile picture must be smaller than 5 MB.')
+            return redirect('users:profile')
+
+        user.profile_picture = uploaded_picture
+        user.save(update_fields=['profile_picture', 'updated_at'])
+        messages.success(request, 'Profile picture updated successfully.')
+        return redirect('users:profile')
 
 
 class ProfileEditView(LoginRequiredMixin, UpdateView):
@@ -119,6 +152,43 @@ class ApproveRoleRequestView(AdminRequiredMixin, View):
     def post(self, request, pk):
         try:
             role_request = get_object_or_404(RoleUpgradeRequest, pk=pk)
+
+            if role_request.status != RoleUpgradeRequest.Status.PENDING:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'This request has already been reviewed.'
+                }, status=400)
+
+            existing_approved = RoleUpgradeRequest.objects.filter(
+                user=role_request.user,
+                requested_role=role_request.requested_role,
+                status=RoleUpgradeRequest.Status.APPROVED
+            ).exclude(pk=role_request.pk).exists()
+
+            if existing_approved or role_request.user.role == role_request.requested_role:
+                existing_rejected = RoleUpgradeRequest.objects.filter(
+                    user=role_request.user,
+                    requested_role=role_request.requested_role,
+                    status=RoleUpgradeRequest.Status.REJECTED
+                ).exclude(pk=role_request.pk).first()
+
+                if existing_rejected:
+                    # Avoid unique_together conflict: keep historical rejected row, remove duplicate pending row.
+                    role_request.delete()
+                else:
+                    role_request.status = RoleUpgradeRequest.Status.REJECTED
+                    role_request.reviewed_by = request.user
+                    role_request.reviewed_at = timezone.now()
+                    role_request.review_notes = (
+                        request.POST.get('review_notes', '').strip() or
+                        'Duplicate request: user already has this approved role.'
+                    )
+                    role_request.save()
+
+                return JsonResponse({
+                    'success': True,
+                    'message': f'{role_request.user.username} already has this role. Duplicate request closed.'
+                })
             
             # Update user role
             user = role_request.user
@@ -126,7 +196,7 @@ class ApproveRoleRequestView(AdminRequiredMixin, View):
             user.save()
             
             # Update request status
-            role_request.status = 'approved'
+            role_request.status = RoleUpgradeRequest.Status.APPROVED
             role_request.reviewed_by = request.user
             role_request.reviewed_at = timezone.now()
             role_request.review_notes = request.POST.get('review_notes', '')
@@ -143,6 +213,11 @@ class ApproveRoleRequestView(AdminRequiredMixin, View):
                 'new_role': role_request.requested_role
             })
             
+        except IntegrityError:
+            return JsonResponse({
+                'success': False,
+                'message': 'This request conflicts with an existing reviewed request. Please refresh and try again.'
+            }, status=400)
         except Exception as e:
             error_message = f'Error approving role request: {str(e)}'
             return JsonResponse({
@@ -157,6 +232,12 @@ class RejectRoleRequestView(AdminRequiredMixin, View):
     def post(self, request, pk):
         try:
             role_request = get_object_or_404(RoleUpgradeRequest, pk=pk)
+
+            if role_request.status != RoleUpgradeRequest.Status.PENDING:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'This request has already been reviewed.'
+                }, status=400)
             
             # Update request status
             role_request.status = 'rejected'

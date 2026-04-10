@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block title %}Event Analytics - EventEase{% endblock %}
+
+{% block extra_css %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;700;800&family=Manrope:wght@500;600;700&display=swap');
+
+    .ana-shell {
+        font-family: 'Manrope', sans-serif;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ana-hero {
+        border-radius: 22px;
+        padding: 1.4rem 1.5rem;
+        color: #fff;
+        background: linear-gradient(140deg, #0b3f9c 0%, #0f766e 52%, #0b7285 100%);
+        box-shadow: 0 24px 42px rgba(15, 23, 42, 0.3);
+        position: relative;
+        transform-style: preserve-3d;
+    }
+
+    .ana-hero h2 {
+        font-family: 'Sora', sans-serif;
+        font-weight: 800;
+        margin-bottom: 0.2rem;
+    }
+
+    .ana-hero .dot {
+        width: 8px;
+        height: 8px;
+        background: #22d3ee;
+        border-radius: 999px;
+        display: inline-block;
+        box-shadow: 0 0 0 5px rgba(34, 211, 238, 0.2);
+    }
+
+    .kpi-card {
+        border-radius: 16px;
+        border: 1px solid #d8e2ee;
+        background: linear-gradient(155deg, #ffffff, #f4f9ff);
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
+        height: 100%;
+    }
+
+    .kpi-card h3 {
+        font-family: 'Sora', sans-serif;
+        font-weight: 800;
+        margin-bottom: 0.15rem;
+    }
+
+    .kpi-track {
+        height: 6px;
+        background: #dbe7f4;
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 0.55rem;
+    }
+
+    .kpi-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #0ea5e9, #0f766e);
+        width: 0;
+        transition: width 800ms ease;
+    }
+
+    .ana-panel {
+        border-radius: 18px;
+        border: 1px solid #d9e3ef;
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.09);
+    }
+
+    .ana-panel .card-header {
+        background: linear-gradient(110deg, #f8fbff, #edf5ff);
+        border-bottom: 1px solid #d9e3ef;
+        border-radius: 18px 18px 0 0;
+    }
+
+    .orders-table thead th {
+        text-transform: uppercase;
+        font-size: 0.74rem;
+        letter-spacing: 0.65px;
+        color: #475569;
+    }
+
+    .orders-table tbody tr {
+        transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    .orders-table tbody tr:hover {
+        transform: translateX(3px);
+        background-color: rgba(14, 165, 233, 0.06);
+    }
+
+    html.dark-mode .ana-hero {
+        background: linear-gradient(140deg, #0d2f70 0%, #0f5f54 52%, #0b5666 100%);
+    }
+
+    html.dark-mode .kpi-card,
+    html.dark-mode .ana-panel {
+        background: #1f2733;
+        border-color: #3a4a5f;
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.36);
+    }
+
+    html.dark-mode .ana-panel .card-header {
+        background: linear-gradient(110deg, #283446, #202d3f);
+        border-bottom-color: #3a4a5f;
+    }
+
+    html.dark-mode .orders-table thead th {
+        color: #d2dceb;
+    }
+
+    html.dark-mode .kpi-track {
+        background: #32465e;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5 ana-shell">
+    <div class="ana-hero d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4" id="analyticsHero">
+        <div>
+            <h2><i class="fas fa-chart-line me-2"></i>Event Analytics</h2>
+            <p class="mb-0 opacity-75">{{ event.title }}</p>
+            <div class="d-flex align-items-center gap-2 mt-2"><span class="dot"></span><small>Live performance snapshot</small></div>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'events:manage_event' event.pk %}" class="btn btn-light" data-vt-link>Manage</a>
+            <a href="{% url 'events:edit_event' event.pk %}" class="btn btn-outline-light" data-vt-link>Edit</a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center kpi-card">
+                <div class="card-body">
+                    <h3>{{ tickets_sold }}</h3>
+                    <p class="text-muted mb-0">Tickets Sold</p>
+                    <div class="kpi-track"><div class="kpi-fill" data-fill="{{ event.capacity_percentage|default:0 }}"></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center kpi-card">
+                <div class="card-body">
+                    <h3>${{ revenue|floatformat:2 }}</h3>
+                    <p class="text-muted mb-0">Revenue</p>
+                    <div class="kpi-track"><div class="kpi-fill" data-fill="78"></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center kpi-card">
+                <div class="card-body">
+                    <h3>{{ orders_count }}</h3>
+                    <p class="text-muted mb-0">Orders</p>
+                    <div class="kpi-track"><div class="kpi-fill" data-fill="65"></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center kpi-card">
+                <div class="card-body">
+                    <h3>{{ avg_rating|floatformat:1 }}</h3>
+                    <p class="text-muted mb-0">Avg Rating</p>
+                    <div class="kpi-track"><div class="kpi-fill" data-fill="{{ avg_rating|floatformat:0 }}0"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card ana-panel">
+        <div class="card-header"><h5 class="mb-0">Recent Completed Orders</h5></div>
+        <div class="card-body">
+            {% if recent_orders %}
+                <div class="table-responsive">
+                    <table class="table table-hover orders-table">
+                        <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>User</th>
+                                <th>Qty</th>
+                                <th>Amount</th>
+                                <th>Paid At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                                <tr>
+                                    <td>{{ order.order_number }}</td>
+                                    <td>{{ order.user.username }}</td>
+                                    <td>{{ order.ticket_quantity }}</td>
+                                    <td>${{ order.total_amount|floatformat:2 }}</td>
+                                    <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">No completed orders found for this event.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.kpi-fill').forEach(function (bar) {
+            const value = Math.max(0, Math.min(100, Number(bar.dataset.fill || 0)));
+            requestAnimationFrame(function () {
+                bar.style.width = value + '%';
+            });
+        });
+
+        const hero = document.getElementById('analyticsHero');
+        window.addEventListener('scroll', function () {
+            if (!hero) {
+                return;
+            }
+            const y = Math.min(window.scrollY * 0.08, 18);
+            hero.style.transform = 'translateY(' + y + 'px)';
+        }, { passive: true });
+
+        if (!('startViewTransition' in document)) {
+            return;
+        }
+        document.querySelectorAll('a[data-vt-link]').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                const href = e.currentTarget.getAttribute('href');
+                if (!href || href.startsWith('#')) {
+                    return;
+                }
+                e.preventDefault();
+                document.startViewTransition(function () {
+                    window.location.href = href;
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,11 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View, TemplateView
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.db.models import Q, Count, Sum
+from django.db.models import Q, Count, Sum, Avg
+from django.utils import timezone
 from .models import Event, Category, Ticket
 from .forms import EventForm, BookTicketForm
+from apps.venues.models import Venue
 
 
 class EventListView(ListView):
@@ -37,12 +39,19 @@ class EventListView(ListView):
         if venue_id:
             queryset = queryset.filter(venue_id=venue_id)
         
-        return queryset.order_by('event_date', 'start_time')
+        # Order by featured first, then by event date
+        return queryset.order_by('-is_featured', 'event_date', 'start_time')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['categories'] = Category.objects.all()
+        context['venues'] = Venue.objects.filter(is_active=True).order_by('name')
         context['search_query'] = self.request.GET.get('search', '')
+        # Get featured events separately for potential featured section
+        context['featured_events'] = Event.objects.filter(
+            status='published', 
+            is_featured=True
+        ).select_related('venue', 'category')[:5]
         return context
 
 
@@ -65,8 +74,8 @@ class EventDetailView(DetailView):
         
         # Check if user can book tickets
         if self.request.user.is_authenticated:
-            context['user_has_ticket'] = event.tickets.filter(
-                buyer=self.request.user,
+            context['user_has_ticket'] = event.orders.filter(
+                user=self.request.user,
                 payment__status='completed'
             ).exists()
         
@@ -120,15 +129,61 @@ class CreateEventView(HorizonPlannerRequiredMixin, CreateView):
         context['categories'] = Category.objects.all()
         
         # Add available venues for the dropdown
-        from apps.venues.models import Venue
         context['available_venues'] = Venue.objects.filter(is_active=True).order_by('name')
         
         return context
     
     def form_valid(self, form):
         form.instance.manager = self.request.user
+        action = self.request.POST.get('action', 'publish')
+        form.instance.status = Event.Status.PUBLISHED if action == 'publish' else Event.Status.DRAFT
         response = super().form_valid(form)
-        messages.success(self.request, 'Event created successfully!')
+
+        # Optional ticket tier inputs from create form.
+        ticket_names = self.request.POST.getlist('ticket_name[]')
+        ticket_prices = self.request.POST.getlist('ticket_price[]')
+        ticket_quantities = self.request.POST.getlist('ticket_quantity[]')
+
+        if not form.instance.is_free and ticket_names:
+            from decimal import Decimal, InvalidOperation
+            from .models import TicketPricing
+
+            for index, name in enumerate(ticket_names):
+                tier_name = (name or '').strip()
+                if not tier_name:
+                    continue
+
+                price_raw = ticket_prices[index] if index < len(ticket_prices) else ''
+                quantity_raw = ticket_quantities[index] if index < len(ticket_quantities) else ''
+
+                try:
+                    price = Decimal(str(price_raw))
+                except (InvalidOperation, ValueError):
+                    continue
+
+                try:
+                    quantity = int(quantity_raw)
+                except (TypeError, ValueError):
+                    continue
+
+                if price < 0 or quantity <= 0:
+                    continue
+
+                TicketPricing.objects.get_or_create(
+                    event=form.instance,
+                    ticket_type='regular',
+                    name=tier_name,
+                    defaults={
+                        'price': price,
+                        'available_quantity': quantity,
+                        'is_active': True,
+                    }
+                )
+
+        if form.instance.status == Event.Status.PUBLISHED:
+            messages.success(self.request, 'Event created and published successfully!')
+        else:
+            messages.success(self.request, 'Event saved as draft successfully!')
         return response
 
 
@@ -163,10 +218,10 @@ class ManageEventView(HorizonPlannerRequiredMixin, DetailView):
         event = self.get_object()
         
         # Get ticket sales data
-        tickets = event.tickets.filter(payment__status='completed')
-        context['tickets_sold'] = tickets.aggregate(total=Sum('quantity'))['total'] or 0
-        context['revenue'] = tickets.aggregate(total=Sum('total_price'))['total'] or 0
-        context['recent_sales'] = tickets.order_by('-created_at')[:10]
+        completed_orders = event.orders.filter(payment__status='completed').select_related('user', 'payment')
+        context['tickets_sold'] = completed_orders.aggregate(total=Sum('ticket_quantity'))['total'] or 0
+        context['revenue'] = completed_orders.aggregate(total=Sum('total_amount'))['total'] or 0
+        context['recent_sales'] = completed_orders.order_by('-created_at')[:10]
         
         return context
 
@@ -281,6 +336,22 @@ class EventDetailAnalyticsView(HorizonPlannerRequiredMixin, DetailView):
             return Event.objects.all()
         return Event.objects.filter(manager=self.request.user)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        event = self.get_object()
+
+        completed_orders = event.orders.filter(payment__status='completed').select_related('user', 'payment')
+        context['tickets_sold'] = completed_orders.aggregate(total=Sum('ticket_quantity'))['total'] or 0
+        context['revenue'] = completed_orders.aggregate(total=Sum('total_amount'))['total'] or 0
+        context['orders_count'] = completed_orders.count()
+        context['recent_orders'] = completed_orders.order_by('-created_at')[:10]
+
+        reviews = event.reviews.filter(status='approved')
+        context['reviews_count'] = reviews.count()
+        context['avg_rating'] = reviews.aggregate(avg=Avg('rating'))['avg'] or 0
+
+        return context
+
 
 # Category Management Views
 class CategoryListView(HorizonPlannerRequiredMixin, ListView):
@@ -332,3 +403,59 @@ class DeleteCategoryView(HorizonPlannerRequiredMixin, DeleteView):
         if self.request.user.is_admin_user:
             return Event.objects.all()
         return Event.objects.filter(manager=self.request.user)
+
+
+# Static Pages Views
+class AboutView(TemplateView):
+    """About page"""
+    template_name = 'pages/about.html'
+
+
+class PolicyView(TemplateView):
+    """Privacy & Terms Policy page"""
+    template_name = 'pages/policy.html'
+
+
+class ContactView(TemplateView):
+    """Contact page"""
+    template_name = 'pages/contact.html'
+
+
+class EventShowcaseView(TemplateView):
+    """Showcase page with active, recent and featured events"""
+    template_name = 'events/event_showcase.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        today = timezone.localdate()
+
+        completed_filter = (
+            Q(status=Event.Status.COMPLETED) |
+            (Q(event_date__lt=today) & ~Q(status=Event.Status.CANCELLED))
+        )
+
+        context['active_events'] = Event.objects.filter(
+            status=Event.Status.PUBLISHED,
+            event_date__gte=today
+        ).select_related('venue', 'category', 'manager').order_by('event_date', 'start_time')[:12]
+
+        context['recently_done_events'] = Event.objects.filter(
+            completed_filter
+        ).select_related('venue', 'category', 'manager').order_by('-event_date', '-start_time')[:8]
+
+        context['special_bookmarked_events'] = Event.objects.filter(
+            is_featured=True
+        ).exclude(
+            status=Event.Status.DRAFT
+        ).select_related('venue', 'category', 'manager').order_by('-event_date', 'start_time')[:6]
+
+        context['total_events_done'] = Event.objects.filter(completed_filter).count()
+        context['total_active_events'] = Event.objects.filter(
+            status=Event.Status.PUBLISHED,
+            event_date__gte=today
+        ).count()
+        context['total_featured_events'] = Event.objects.filter(
+            is_featured=True
+        ).exclude(status=Event.Status.DRAFT).count()
+
+        return context

@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Event - EventEase{% endblock %}
+
+{% block extra_css %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;700;800&family=Manrope:wght@500;600;700&display=swap');
+
+    .manage-shell {
+        font-family: 'Manrope', sans-serif;
+        position: relative;
+    }
+
+    .manage-hero {
+        border-radius: 22px;
+        padding: 1.5rem;
+        background: linear-gradient(130deg, #1d4ed8 0%, #0b3f9c 42%, #0f766e 100%);
+        box-shadow: 0 22px 40px rgba(15, 23, 42, 0.27);
+        color: #fff;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .manage-hero::after {
+        content: "";
+        position: absolute;
+        width: 240px;
+        height: 240px;
+        right: -60px;
+        top: -80px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.24), transparent 70%);
+        border-radius: 999px;
+    }
+
+    .manage-hero h2 {
+        font-family: 'Sora', sans-serif;
+        font-weight: 800;
+        margin-bottom: 0.2rem;
+        letter-spacing: 0.2px;
+    }
+
+    .manage-chip {
+        border-radius: 999px;
+        padding: 0.34rem 0.8rem;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.12);
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+
+    .stat-card {
+        border-radius: 16px;
+        border: 1px solid rgba(30, 64, 175, 0.18);
+        background: linear-gradient(145deg, #ffffff, #f8fbff);
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+    }
+
+    .stat-card h3 {
+        font-family: 'Sora', sans-serif;
+        font-weight: 800;
+        margin-bottom: 0.2rem;
+    }
+
+    .panel-card {
+        border-radius: 18px;
+        border: 1px solid #dce5ef;
+        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+    }
+
+    .panel-card .card-header {
+        background: linear-gradient(110deg, #f8fbff, #edf5ff);
+        border-bottom: 1px solid #dce5ef;
+        border-radius: 18px 18px 0 0;
+        font-weight: 700;
+    }
+
+    .data-grid p {
+        margin-bottom: 0.75rem;
+        color: #334155;
+        font-weight: 600;
+    }
+
+    .action-stack .btn {
+        border-radius: 12px;
+        font-weight: 700;
+    }
+
+    .sales-table thead th {
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.6px;
+        color: #4b5563;
+    }
+
+    html.dark-mode .manage-hero {
+        background: linear-gradient(130deg, #1d4ed8 0%, #102a73 42%, #0f5f54 100%);
+    }
+
+    html.dark-mode .stat-card,
+    html.dark-mode .panel-card {
+        background: #1f2733;
+        border-color: #36465d;
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    html.dark-mode .panel-card .card-header {
+        background: linear-gradient(110deg, #283446, #202d3f);
+        border-bottom-color: #36465d;
+    }
+
+    html.dark-mode .data-grid p,
+    html.dark-mode .sales-table thead th {
+        color: #d4dfec;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5 manage-shell">
+    <div class="manage-hero d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2><i class="fas fa-cogs me-2"></i>Manage Event</h2>
+            <p class="mb-0 opacity-75">{{ event.title }}</p>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+                <span class="manage-chip"><i class="fas fa-tag me-1"></i>{{ event.get_status_display }}</span>
+                <span class="manage-chip"><i class="fas fa-map-marker-alt me-1"></i>{{ event.venue.name }}</span>
+                <span class="manage-chip"><i class="fas fa-calendar-day me-1"></i>{{ event.event_date }}</span>
+            </div>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'events:edit_event' event.pk %}" class="btn btn-light" data-vt-link><i class="fas fa-edit me-1"></i>Edit</a>
+            <a href="{% url 'events:event_detail_analytics' event.pk %}" class="btn btn-outline-light" data-vt-link><i class="fas fa-chart-line me-1"></i>Analytics</a>
+            <a href="{% url 'events:delete_event' event.pk %}" class="btn btn-outline-warning" data-vt-link><i class="fas fa-trash me-1"></i>Delete</a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card text-center p-3">
+                <h3>{{ tickets_sold }}</h3>
+                <p class="mb-0 text-muted">Tickets Sold</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card text-center p-3">
+                <h3>${{ revenue|floatformat:2 }}</h3>
+                <p class="mb-0 text-muted">Revenue</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card text-center p-3">
+                <h3>{{ event.available_seats }}</h3>
+                <p class="mb-0 text-muted">Available Seats</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card panel-card">
+                <div class="card-header"><h5 class="mb-0">Event Details</h5></div>
+                <div class="card-body">
+                    <div class="row data-grid">
+                        <div class="col-md-6 mb-2"><strong>Status:</strong> {{ event.get_status_display }}</div>
+                        <div class="col-md-6 mb-2"><strong>Venue:</strong> {{ event.venue.name }}</div>
+                        <div class="col-md-6 mb-2"><strong>Date:</strong> {{ event.event_date }}</div>
+                        <div class="col-md-6 mb-2"><strong>Time:</strong> {{ event.start_time }} - {{ event.end_time }}</div>
+                        <div class="col-md-6 mb-2"><strong>Seats:</strong> {{ event.total_seats }}</div>
+                        <div class="col-md-6 mb-2"><strong>Price:</strong> ${{ event.base_price }}</div>
+                    </div>
+                    <hr>
+                    <h6>Description</h6>
+                    <p class="mb-0">{{ event.description }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card panel-card mb-3">
+                <div class="card-header"><h6 class="mb-0">Performance</h6></div>
+                <div class="card-body">
+                    <p class="mb-2"><strong>Tickets Sold:</strong> {{ tickets_sold }}</p>
+                    <p class="mb-2"><strong>Revenue:</strong> ${{ revenue|floatformat:2 }}</p>
+                    <p class="mb-0"><strong>Available Seats:</strong> {{ event.available_seats }}</p>
+                </div>
+            </div>
+            <div class="card panel-card">
+                <div class="card-header"><h6 class="mb-0">Quick Links</h6></div>
+                <div class="card-body d-grid gap-2 action-stack">
+                    <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-outline-secondary btn-sm" data-vt-link>Public View</a>
+                    <a href="{% url 'events:manager_dashboard' %}" class="btn btn-outline-secondary btn-sm" data-vt-link>Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card panel-card mt-4">
+        <div class="card-header"><h6 class="mb-0">Recent Sales</h6></div>
+        <div class="card-body">
+            {% if recent_sales %}
+                <div class="table-responsive">
+                    <table class="table table-sm sales-table">
+                        <thead>
+                            <tr>
+                                <th>Buyer</th>
+                                <th>Quantity</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sale in recent_sales %}
+                                <tr>
+                                    <td>{{ sale.user.username }}</td>
+                                    <td>{{ sale.ticket_quantity }}</td>
+                                    <td>${{ sale.total_amount|floatformat:2 }}</td>
+                                    <td>{{ sale.created_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">No completed sales yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!('startViewTransition' in document)) {
+            return;
+        }
+        document.querySelectorAll('a[data-vt-link]').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                const href = e.currentTarget.getAttribute('href');
+                if (!href || href.startsWith('#')) {
+                    return;
+                }
+                e.preventDefault();
+                document.startViewTransition(function () {
+                    window.location.href = href;
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

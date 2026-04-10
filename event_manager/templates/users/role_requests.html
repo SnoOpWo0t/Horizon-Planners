@@ -5,6 +5,7 @@
 
 {% block content %}
 {% csrf_token %}
+<div id="roleRequestAlerts" class="container mt-3"></div>
 <div class="container my-5">
     <div class="row">
         <div class="col-12">
@@ -92,12 +93,14 @@
                                     <button type="button" 
                                             class="btn btn-success flex-fill approve-request" 
                                             data-request-id="{{ request.id }}"
+                                            data-action-url="{% url 'users:approve_role_request' request.id %}"
                                             data-user-name="{{ request.user.get_full_name|default:request.user.username }}">
                                         <i class="fas fa-check me-2"></i>Approve
                                     </button>
                                     <button type="button" 
                                             class="btn btn-danger flex-fill reject-request" 
                                             data-request-id="{{ request.id }}"
+                                            data-action-url="{% url 'users:reject_role_request' request.id %}"
                                             data-user-name="{{ request.user.get_full_name|default:request.user.username }}">
                                         <i class="fas fa-times me-2"></i>Reject
                                     </button>
@@ -242,11 +245,30 @@ document.querySelectorAll('input[name="statusFilter"]').forEach(radio => {
 });
 
 let currentRequestId = null;
+let currentApproveUrl = '';
+let currentRejectUrl = '';
+
+function showRoleRequestAlert(type, message) {
+    const alertHost = document.getElementById('roleRequestAlerts');
+    if (!alertHost) {
+        alert(message);
+        return;
+    }
+
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    alertHost.prepend(alertDiv);
+}
 
 // Approval button handlers
 document.querySelectorAll('.approve-request').forEach(button => {
     button.addEventListener('click', function() {
         currentRequestId = this.dataset.requestId;
+        currentApproveUrl = this.dataset.actionUrl;
         document.getElementById('approveUserName').textContent = this.dataset.userName;
         new bootstrap.Modal(document.getElementById('approvalModal')).show();
     });
@@ -256,6 +278,7 @@ document.querySelectorAll('.approve-request').forEach(button => {
 document.querySelectorAll('.reject-request').forEach(button => {
     button.addEventListener('click', function() {
         currentRequestId = this.dataset.requestId;
+        currentRejectUrl = this.dataset.actionUrl;
         document.getElementById('rejectUserName').textContent = this.dataset.userName;
         new bootstrap.Modal(document.getElementById('rejectionModal')).show();
     });
@@ -270,29 +293,25 @@ document.getElementById('confirmApprove').addEventListener('click', function() {
     this.disabled = true;
     
     // Make AJAX request to approve
-    fetch(`/users/role-request/${currentRequestId}/approve/`, {
+    fetch(currentApproveUrl, {
         method: 'POST',
         headers: {
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
             'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: `review_notes=${encodeURIComponent(notes)}`
-    }).then(response => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            throw new Error('Network response was not ok');
+    }).then(async response => {
+        const contentType = response.headers.get('content-type') || '';
+        const payload = contentType.includes('application/json') ? await response.json() : null;
+
+        if (!response.ok) {
+            throw new Error(payload?.message || `Request failed with status ${response.status}`);
         }
+
+        return payload || { success: false, message: 'Unexpected server response.' };
     }).then(data => {
         if (data.success) {
-            // Show success message
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-success alert-dismissible fade show';
-            alertDiv.innerHTML = `
-                ${data.message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.row'));
+            showRoleRequestAlert('success', data.message);
             
             // Close modal and reload page
             bootstrap.Modal.getInstance(document.getElementById('approvalModal')).hide();
@@ -302,7 +321,7 @@ document.getElementById('confirmApprove').addEventListener('click', function() {
         }
     }).catch(error => {
         console.error('Error:', error);
-        alert('Error approving request. Please try again.');
+        alert(error.message || 'Error approving request. Please try again.');
         
         // Reset button
         this.innerHTML = '<i class="fas fa-check me-2"></i>Approve Request';
@@ -324,29 +343,25 @@ document.getElementById('confirmReject').addEventListener('click', function() {
     this.disabled = true;
     
     // Make AJAX request to reject
-    fetch(`/users/role-request/${currentRequestId}/reject/`, {
+    fetch(currentRejectUrl, {
         method: 'POST',
         headers: {
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
             'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: `review_notes=${encodeURIComponent(notes)}`
-    }).then(response => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            throw new Error('Network response was not ok');
+    }).then(async response => {
+        const contentType = response.headers.get('content-type') || '';
+        const payload = contentType.includes('application/json') ? await response.json() : null;
+
+        if (!response.ok) {
+            throw new Error(payload?.message || `Request failed with status ${response.status}`);
         }
+
+        return payload || { success: false, message: 'Unexpected server response.' };
     }).then(data => {
         if (data.success) {
-            // Show success message
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert-info alert-dismissible fade show';
-            alertDiv.innerHTML = `
-                ${data.message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.row'));
+            showRoleRequestAlert('info', data.message);
             
             // Close modal and reload page
             bootstrap.Modal.getInstance(document.getElementById('rejectionModal')).hide();
@@ -356,7 +371,7 @@ document.getElementById('confirmReject').addEventListener('click', function() {
         }
     }).catch(error => {
         console.error('Error:', error);
-        alert('Error rejecting request. Please try again.');
+        alert(error.message || 'Error rejecting request. Please try again.');
         
         // Reset button
         this.innerHTML = '<i class="fas fa-times me-2"></i>Reject Request';

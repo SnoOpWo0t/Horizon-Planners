@@ -3,6 +3,22 @@
 
 {% block title %}Admin Dashboard - EventEase{% endblock %}
 
+{% block extra_css %}
+<style>
+    .chart-wrap-fixed {
+        position: relative;
+        height: 220px;
+        width: 100%;
+    }
+
+    .chart-wrap-fixed canvas {
+        width: 100% !important;
+        height: 100% !important;
+        display: block;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid my-4">
     <div class="row">
@@ -118,7 +134,9 @@
 
                         <div class="col-md-6">
                             <h6>Revenue Breakdown</h6>
-                            <canvas id="revenueBreakdownChart" height="150"></canvas>
+                            <div class="chart-wrap-fixed">
+                                <canvas id="revenueBreakdownChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -324,35 +342,48 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 // Revenue Breakdown Chart
-const ctx = document.getElementById('revenueBreakdownChart').getContext('2d');
-const revenueChart = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Event Tickets', 'Venue Bookings', 'Platform Fees'],
-        datasets: [{
-            data: [60, 30, 10],
-            backgroundColor: [
-                'rgba(54, 162, 235, 0.8)',
-                'rgba(255, 206, 86, 0.8)',
-                'rgba(255, 99, 132, 0.8)'
-            ],
-            borderColor: [
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(255, 99, 132, 1)'
-            ],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom'
+(function () {
+    const canvas = document.getElementById('revenueBreakdownChart');
+    if (!canvas || typeof Chart === 'undefined') {
+        return;
+    }
+
+    const existingChart = Chart.getChart(canvas);
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Event Tickets', 'Venue Bookings', 'Platform Fees'],
+            datasets: [{
+                data: [60, 30, 10],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(255, 99, 132, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            resizeDelay: 200,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
             }
         }
-    }
-});
+    });
+})();
 </script>
 {% endblock %}

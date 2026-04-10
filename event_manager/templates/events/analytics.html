@@ -242,11 +242,11 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'event_detail' event.slug %}" class="btn btn-sm btn-outline-primary">
+                                            <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             {% if perms.events.change_event %}
-                                                <a href="{% url 'event_update' event.slug %}" class="btn btn-sm btn-outline-secondary">
+                                                <a href="{% url 'events:edit_event' event.pk %}" class="btn btn-sm btn-outline-secondary">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
                                             {% endif %}

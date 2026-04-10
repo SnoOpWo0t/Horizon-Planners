@@ -164,13 +164,13 @@ def get_event_analytics_data(event):
     from django.db.models import Sum, Count, Avg
     
     # Get related data
-    tickets = event.tickets.filter(payment__status='completed')
+    completed_orders = event.orders.filter(payment__status='completed')
     reviews = event.reviews.filter(status='approved')
     comments = event.comments.filter(status='approved')
     
     analytics = {
-        'tickets_sold': tickets.aggregate(total=Sum('quantity'))['total'] or 0,
-        'gross_revenue': tickets.aggregate(total=Sum('total_price'))['total'] or 0,
+        'tickets_sold': completed_orders.aggregate(total=Sum('ticket_quantity'))['total'] or 0,
+        'gross_revenue': completed_orders.aggregate(total=Sum('total_amount'))['total'] or 0,
         'reviews_count': reviews.count(),
         'average_rating': reviews.aggregate(avg=Avg('rating'))['avg'] or 0,
         'comments_count': comments.count(),

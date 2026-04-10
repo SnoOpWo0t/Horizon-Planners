@@ -121,11 +121,11 @@
                             <!-- Action Buttons -->
                             <div class="mt-auto">
                                 <div class="d-flex gap-2">
-                                    <a href="{% url 'events:event_detail' event.slug %}" class="btn btn-outline-primary flex-grow-1">
+                                    <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-outline-primary flex-grow-1">
                                         <i class="fas fa-info-circle me-1"></i>Details
                                     </a>
                                     {% if event.remaining_tickets > 0 %}
-                                        <a href="{% url 'events:book_ticket' event.slug %}" class="btn btn-primary">
+                                        <a href="{% url 'events:book_ticket' event.pk %}" class="btn btn-primary">
                                             <i class="fas fa-ticket-alt me-1"></i>Book
                                         </a>
                                     {% else %}

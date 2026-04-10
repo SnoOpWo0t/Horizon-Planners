@@ -12,17 +12,22 @@ class EventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = [
-            'title', 'description', 'category', 'venue', 'event_date',
-            'start_time', 'end_time', 'total_seats', 'base_price',
-            'poster_image', 'age_restriction', 'special_instructions', 'status'
+            'title', 'description', 'category', 'venue', 'start_date', 'end_date',
+            'registration_deadline', 'max_capacity', 'min_capacity', 'requires_approval',
+            'is_free', 'base_price', 'poster_image', 'age_restriction',
+            'special_instructions', 'is_active', 'is_featured'
         ]
         widgets = {
-            'event_date': forms.DateInput(attrs={'type': 'date'}),
-            'start_time': forms.TimeInput(attrs={'type': 'time'}),
-            'end_time': forms.TimeInput(attrs={'type': 'time'}),
+            'start_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'end_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'registration_deadline': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'description': forms.Textarea(attrs={'rows': 4}),
             'special_instructions': forms.Textarea(attrs={'rows': 3}),
             'poster_image': forms.FileInput(attrs={'accept': 'image/*'}),
+            'is_featured': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_free': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'requires_approval': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -39,14 +44,50 @@ class EventForm(forms.ModelForm):
     
     def clean(self):
         cleaned_data = super().clean()
-        event_date = cleaned_data.get('event_date')
-        start_time = cleaned_data.get('start_time')
-        end_time = cleaned_data.get('end_time')
-        
-        if start_time and end_time and start_time >= end_time:
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+        max_capacity = cleaned_data.get('max_capacity')
+        min_capacity = cleaned_data.get('min_capacity')
+        is_free = cleaned_data.get('is_free')
+        base_price = cleaned_data.get('base_price')
+
+        if start_date and end_date and start_date >= end_date:
             raise forms.ValidationError('End time must be after start time.')
+
+        if max_capacity and min_capacity and min_capacity > max_capacity:
+            raise forms.ValidationError('Minimum capacity cannot exceed maximum capacity.')
+
+        if is_free:
+            cleaned_data['base_price'] = 0
+        elif base_price is not None and base_price < 0:
+            raise forms.ValidationError('Base price cannot be negative.')
+
+        # Keep canonical fields populated for code paths still using older field names.
+        if start_date:
+            cleaned_data['event_date'] = start_date.date()
+            cleaned_data['start_time'] = start_date.time().replace(second=0, microsecond=0)
+        if end_date:
+            cleaned_data['end_time'] = end_date.time().replace(second=0, microsecond=0)
+        if max_capacity:
+            cleaned_data['total_seats'] = max_capacity
         
         return cleaned_data
+
+    def save(self, commit=True):
+        event = super().save(commit=False)
+        if event.start_date:
+            event.event_date = event.start_date.date()
+            event.start_time = event.start_date.time().replace(second=0, microsecond=0)
+        if event.end_date:
+            event.end_time = event.end_date.time().replace(second=0, microsecond=0)
+        if event.max_capacity:
+            event.total_seats = event.max_capacity
+        if event.is_free:
+            event.base_price = 0
+
+        if commit:
+            event.save()
+        return event
 
 
 class BookTicketForm(forms.ModelForm):

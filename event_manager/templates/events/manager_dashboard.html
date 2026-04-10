@@ -168,19 +168,19 @@
                                             <td class="text-success fw-bold">${{ event.revenue|floatformat:0 }}</td>
                                             <td>
                                                 <div class="btn-group" role="group">
-                                                    <a href="{% url 'events:event_detail' event.slug %}" 
+                                                    <a href="{% url 'events:event_detail' event.pk %}" 
                                                        class="btn btn-outline-primary btn-sm" title="View">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
-                                                    <a href="{% url 'events:edit_event' event.slug %}" 
+                                                    <a href="{% url 'events:edit_event' event.pk %}" 
                                                        class="btn btn-outline-secondary btn-sm" title="Edit">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <a href="{% url 'events:manage_event' event.slug %}" 
+                                                    <a href="{% url 'events:manage_event' event.pk %}" 
                                                        class="btn btn-outline-info btn-sm" title="Manage">
                                                         <i class="fas fa-cogs"></i>
                                                     </a>
-                                                    <a href="{% url 'events:event_analytics' event.slug %}" 
+                                                    <a href="{% url 'events:event_detail_analytics' event.pk %}" 
                                                        class="btn btn-outline-success btn-sm" title="Analytics">
                                                         <i class="fas fa-chart-line"></i>
                                                     </a>

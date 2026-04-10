@@ -1,0 +1,581 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About Us - Horizon Planners{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 80px 0 100px;
+        color: white;
+        text-align: center;
+        animation: slideDown 0.8s ease-out;
+    }
+
+    .page-header h1 {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .page-header p {
+        font-size: 1.3rem;
+        opacity: 0.95;
+    }
+
+    /* Animations */
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-40px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+
+    .section {
+        padding: 80px 0;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .section-title {
+        text-align: center;
+        margin-bottom: 60px;
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+
+    .section-title h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .section-title .divider {
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        margin: 0 auto 20px;
+    }
+
+    .section-title p {
+        font-size: 1.1rem;
+        color: #666;
+    }
+
+    /* Purpose Section */
+    .purpose-card {
+        background: white;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        animation: scaleIn 0.8s ease-out 0.3s both;
+        border-left: 5px solid #667eea;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .purpose-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    .purpose-card h3 {
+        font-size: 1.5rem;
+        color: #333;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .purpose-card i {
+        font-size: 1.8rem;
+        color: #667eea;
+    }
+
+    /* Role Cards */
+    .role-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 40px;
+        margin-top: 40px;
+    }
+
+    .role-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 50px 30px;
+        border-radius: 15px;
+        text-align: center;
+        animation: scaleIn 0.8s ease-out forwards;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .role-card:nth-child(1) { animation-delay: 0.3s; }
+    .role-card:nth-child(2) { animation-delay: 0.4s; }
+    .role-card:nth-child(3) { animation-delay: 0.5s; }
+
+    .role-card:hover {
+        transform: translateY(-15px) scale(1.05);
+        box-shadow: 0 30px 60px rgba(102, 126, 234, 0.3);
+    }
+
+    .role-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .role-card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+
+    .role-card p {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        opacity: 0.95;
+    }
+
+    /* Team Section */
+    .team-section {
+        background: #f8f9fa;
+        padding: 80px 0;
+    }
+
+    .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 40px;
+    }
+
+    .team-member {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        animation: fadeInUp 0.8s ease-out forwards;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .team-member:nth-child(1) { animation-delay: 0.2s; }
+    .team-member:nth-child(2) { animation-delay: 0.3s; }
+    .team-member:nth-child(3) { animation-delay: 0.4s; }
+
+    .team-member:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    .team-member-image {
+        width: 100%;
+        height: 250px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        color: white;
+    }
+
+    .team-member-info {
+        padding: 30px;
+        text-align: center;
+    }
+
+    .team-member-info h4 {
+        font-size: 1.3rem;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .team-member-info p {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .team-member-info .description {
+        font-size: 0.95rem;
+        color: #666;
+        line-height: 1.6;
+    }
+
+    /* Stats Section */
+    .stats-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 0;
+        text-align: center;
+    }
+
+    .stat-item {
+        padding: 20px;
+        animation: fadeInUp 0.8s ease-out forwards;
+    }
+
+    .stat-item:nth-child(1) { animation-delay: 0.2s; }
+    .stat-item:nth-child(2) { animation-delay: 0.3s; }
+    .stat-item:nth-child(3) { animation-delay: 0.4s; }
+    .stat-item:nth-child(4) { animation-delay: 0.5s; }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+
+    /* Vision Section */
+    .vision-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+        align-items: center;
+    }
+
+    .vision-content h3 {
+        font-size: 2rem;
+        margin-bottom: 25px;
+        color: #333;
+    }
+
+    .vision-content p {
+        font-size: 1.05rem;
+        color: #666;
+        line-height: 1.8;
+        margin-bottom: 20px;
+    }
+
+    .vision-icon-box {
+        display: flex;
+        align-items: start;
+        gap: 20px;
+        margin-bottom: 25px;
+        animation: fadeInUp 0.8s ease-out forwards;
+    }
+
+    .vision-icon-box:nth-child(1) { animation-delay: 0.3s; }
+    .vision-icon-box:nth-child(2) { animation-delay: 0.4s; }
+    .vision-icon-box:nth-child(3) { animation-delay: 0.5s; }
+
+    .vision-icon {
+        font-size: 1.5rem;
+        color: #667eea;
+        min-width: 40px;
+        margin-top: 5px;
+    }
+
+    .vision-text h4 {
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+        color: #333;
+    }
+
+    .vision-text p {
+        margin-bottom: 0;
+        font-size: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .page-header h1 {
+            font-size: 2rem;
+        }
+
+        .section {
+            padding: 40px 0;
+        }
+
+        .role-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .vision-section {
+            grid-template-columns: 1fr;
+        }
+
+        .team-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .section-title h2 {
+            font-size: 1.8rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <h1>About Horizon Planners</h1>
+        <p>Premier Event Management Platform</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Purpose Section -->
+    <section class="section">
+        <div class="section-title">
+            <h2>Our Purpose</h2>
+            <div class="divider"></div>
+            <p>Empowering event creators and venue managers worldwide</p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="purpose-card">
+                    <h3>
+                        <i class="fas fa-bullseye"></i>
+                        Our Mission
+                    </h3>
+                    <p>
+                        Horizon Planners is dedicated to revolutionizing event management by providing a comprehensive, user-friendly platform 
+                        that connects event organizers, venue managers, and attendees seamlessly. We believe that every event deserves to be 
+                        planned efficiently and executed flawlessly.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="purpose-card">
+                    <h3>
+                        <i class="fas fa-rocket"></i>
+                        Our Vision
+                    </h3>
+                    <p>
+                        To become the world's leading event management platform by fostering innovation, facilitating growth, and creating 
+                        memorable experiences. We envision a future where organizing events is intuitive, accessible, and rewarding for everyone involved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roles Section -->
+    <section class="section">
+        <div class="section-title">
+            <h2>Platform Roles & Responsibilities</h2>
+            <div class="divider"></div>
+            <p>Understanding the key roles that make our platform thrive</p>
+        </div>
+
+        <div class="role-grid">
+            <div class="role-card">
+                <div class="role-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h3>Horizon Planner</h3>
+                <p>
+                    Event organizers who create and manage events. They set up event details, manage tickets, 
+                    track attendance, monitor analytics, and engage with attendees to ensure successful events.
+                </p>
+            </div>
+
+            <div class="role-card">
+                <div class="role-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h3>Venue Manager</h3>
+                <p>
+                    Facilities providers who list and manage their venues. They handle bookings, manage venue 
+                    availability, track analytics, and provide excellent service to event organizers.
+                </p>
+            </div>
+
+            <div class="role-card">
+                <div class="role-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Event Manager (Admin)</h3>
+                <p>
+                    Platform administrators who oversee the entire ecosystem. They manage user roles, moderate 
+                    content, handle disputes, and ensure platform integrity and security.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Vision Section -->
+    <section class="section">
+        <div class="section-title">
+            <h2>Why Choose Horizon Planners?</h2>
+            <div class="divider"></div>
+        </div>
+
+        <div class="vision-section">
+            <div class="vision-content">
+                <div class="vision-icon-box">
+                    <div class="vision-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="vision-text">
+                        <h4>User-Friendly Interface</h4>
+                        <p>Intuitive design that makes event planning simple and enjoyable for everyone.</p>
+                    </div>
+                </div>
+
+                <div class="vision-icon-box">
+                    <div class="vision-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="vision-text">
+                        <h4>Advanced Analytics</h4>
+                        <p>Comprehensive insights and real-time data to help you make informed decisions.</p>
+                    </div>
+                </div>
+
+                <div class="vision-icon-box">
+                    <div class="vision-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <div class="vision-text">
+                        <h4>Secure & Reliable</h4>
+                        <p>Enterprise-grade security ensuring your data and transactions are always protected.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <img src="https://via.placeholder.com/450x400/667eea/ffffff?text=Event+Excellence" 
+                     alt="Why Choose Us" class="img-fluid rounded-lg" style="animation: float 3s ease-in-out infinite;">
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-number">10K+</div>
+                        <div class="stat-label">Events Organized</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-number">5K+</div>
+                        <div class="stat-label">Venues Listed</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-number">100K+</div>
+                        <div class="stat-label">Happy Attendees</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-item">
+                        <div class="stat-number">50+</div>
+                        <div class="stat-label">Countries</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="section">
+        <div class="section-title">
+            <h2>Meet Our Team</h2>
+            <div class="divider"></div>
+            <p>Passionate individuals dedicated to your success</p>
+        </div>
+
+        <div class="team-grid">
+            <div class="team-member">
+                <div class="team-member-image">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="team-member-info">
+                    <h4>Founder & CEO</h4>
+                    <p>Vision Leader</p>
+                    <p class="description">
+                        With over 15 years in event management, our founder built Horizon Planners 
+                        to transform how events are organized globally.
+                    </p>
+                </div>
+            </div>
+
+            <div class="team-member">
+                <div class="team-member-image">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="team-member-info">
+                    <h4>CTO & Co-Founder</h4>
+                    <p>Technology Expert</p>
+                    <p class="description">
+                        Leading our tech innovation, ensuring our platform stays at the forefront of 
+                        event management technology.
+                    </p>
+                </div>
+            </div>
+
+            <div class="team-member">
+                <div class="team-member-image">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="team-member-info">
+                    <h4>Operations Manager</h4>
+                    <p>Operations Excellence</p>
+                    <p class="description">
+                        Ensuring seamless operations and outstanding customer service across all 
+                        our platform services.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="section" style="text-align: center; padding: 60px 0;">
+        <h2 style="margin-bottom: 30px; font-size: 2.2rem;">Ready to Plan Your Next Event?</h2>
+        <p style="font-size: 1.1rem; margin-bottom: 35px; color: #666;">
+            Join thousands of event organizers and venue managers using Horizon Planners
+        </p>
+        <div>
+            <a href="{% url 'users:signup' %}" class="btn btn-primary btn-lg" 
+               style="animation: fadeInUp 0.8s ease-out; padding: 15px 40px; font-size: 1.1rem;">
+                <i class="fas fa-rocket me-2"></i>Get Started Today
+            </a>
+        </div>
+    </section>
+</div>
+{% endblock %}

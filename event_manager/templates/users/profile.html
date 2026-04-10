@@ -3,28 +3,151 @@
 
 {% block title %}Profile - EventEase{% endblock %}
 
+{% block extra_css %}
+<style>
+    .profile-shell {
+        background: radial-gradient(circle at top right, rgba(13, 110, 253, 0.12), transparent 35%),
+                    radial-gradient(circle at bottom left, rgba(25, 135, 84, 0.08), transparent 35%);
+        border-radius: 18px;
+        padding: 1.25rem;
+    }
+
+    .profile-card {
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
+        overflow: hidden;
+    }
+
+    .profile-card .card-header {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        background: linear-gradient(110deg, #ffffff 0%, #f5f8ff 100%);
+    }
+
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border: 4px solid #fff;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    .profile-avatar-fallback {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0d6efd 0%, #004494 100%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 24px rgba(13, 110, 253, 0.35);
+    }
+
+    .role-pill {
+        letter-spacing: 0.2px;
+        font-weight: 600;
+        border-radius: 999px;
+        padding: 0.45rem 0.85rem;
+    }
+
+    .stat-chip {
+        border: 1px solid rgba(13, 110, 253, 0.2);
+        background: rgba(13, 110, 253, 0.06);
+        color: #0d6efd;
+        border-radius: 999px;
+        padding: 0.3rem 0.7rem;
+        font-size: 0.83rem;
+        font-weight: 600;
+    }
+
+    .quick-link {
+        border-radius: 12px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        transition: all 0.22s ease;
+        min-height: 92px;
+    }
+
+    .quick-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+    }
+
+    html.dark-mode .profile-shell {
+        background: radial-gradient(circle at top right, rgba(13, 202, 240, 0.12), transparent 35%),
+                    radial-gradient(circle at bottom left, rgba(13, 110, 253, 0.12), transparent 35%);
+    }
+
+    html.dark-mode .profile-card {
+        background-color: #1f1f1f;
+        border-color: #30343a;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    html.dark-mode .profile-card .card-header {
+        background: linear-gradient(110deg, #252525 0%, #1d1d1d 100%);
+        border-bottom-color: #30343a;
+    }
+
+    html.dark-mode .quick-link {
+        border-color: #3a3a3a;
+        background-color: #242424;
+    }
+
+    html.dark-mode .stat-chip {
+        border-color: rgba(13, 202, 240, 0.35);
+        background: rgba(13, 202, 240, 0.12);
+        color: #75e6ff;
+    }
+
+    html.dark-mode .text-muted {
+        color: #a9b0bb !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
+<div class="container mt-4 mb-5">
+    <div class="profile-shell">
+    <div class="row g-4">
         <div class="col-lg-4">
-            <div class="card">
+            <div class="card profile-card">
                 <div class="card-body text-center">
                     {% if profile_user.profile_picture %}
-                        <img src="{{ profile_user.profile_picture.url }}" class="rounded-circle mb-3" width="150" height="150" alt="Profile Picture">
+                        <img src="{{ profile_user.profile_picture.url }}" class="rounded-circle profile-avatar mb-3" alt="Profile Picture">
                     {% else %}
-                        <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center mb-3" style="width: 150px; height: 150px;">
+                        <div class="profile-avatar-fallback mb-3">
                             <i class="fas fa-user fa-3x text-white"></i>
                         </div>
                     {% endif %}
                     
-                    <h4>{{ profile_user.get_full_name|default:profile_user.username }}</h4>
+                    <h4 class="mb-1">{{ profile_user.get_full_name|default:profile_user.username }}</h4>
                     <p class="text-muted">@{{ profile_user.username }}</p>
-                    
-                    <span class="badge bg-primary fs-6 mb-3">{{ profile_user.get_role_display }}</span>
+
+                    <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap mb-3">
+                        <span class="badge bg-primary role-pill">{{ profile_user.get_role_display }}</span>
+                        <span class="stat-chip"><i class="fas fa-calendar-check me-1"></i>{{ profile_user.date_joined|date:"M Y" }}</span>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" class="text-start mt-3 mb-2">
+                        {% csrf_token %}
+                        <label for="profilePictureInput" class="form-label fw-semibold">Update Profile Photo</label>
+                        <input type="file" id="profilePictureInput" name="profile_picture" accept="image/*" class="form-control mb-2">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload me-1"></i>Upload Photo
+                            </button>
+                            {% if profile_user.profile_picture %}
+                                <button type="submit" name="remove_profile_picture" value="1" class="btn btn-outline-danger">
+                                    <i class="fas fa-trash-alt me-1"></i>Remove Photo
+                                </button>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted d-block mt-2">Accepted formats: image files up to 5 MB.</small>
+                    </form>
                     
                     <div class="d-grid">
                         <a href="{% url 'users:profile_edit' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-edit me-1"></i>Edit Profile
+                            <i class="fas fa-pen me-1"></i>Edit Profile Details
                         </a>
                     </div>
                 </div>
@@ -32,7 +155,7 @@
             
             <!-- Role Upgrade Section for Basic Users -->
             {% if profile_user.is_basic_user %}
-                <div class="card mt-3">
+                <div class="card profile-card mt-3">
                     <div class="card-body">
                         <h6 class="card-title"><i class="fas fa-arrow-up me-1"></i>Upgrade Your Role</h6>
                         <p class="card-text small">Want to become a Horizon Planner or Venue Manager?</p>
@@ -46,7 +169,7 @@
         
         <div class="col-lg-8">
             <!-- Profile Information -->
-            <div class="card mb-4">
+            <div class="card profile-card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Profile Information</h5>
                 </div>
@@ -105,15 +228,15 @@
             </div>
             
             <!-- Quick Actions based on role -->
-            <div class="card">
+            <div class="card profile-card">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="fas fa-rocket me-2"></i>Quick Actions</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
+                    <div class="row g-3">
                         {% if profile_user.is_horizon_planner or profile_user.is_admin_user %}
                             <div class="col-md-4">
-                                <a href="{% url 'events:manager_dashboard' %}" class="btn btn-outline-primary w-100 mb-2">
+                                <a href="{% url 'events:manager_dashboard' %}" class="btn btn-outline-primary w-100 quick-link d-flex flex-column justify-content-center mb-0">
                                     <i class="fas fa-calendar-plus d-block mb-1"></i>
                                     Horizon Planner
                                 </a>
@@ -122,7 +245,7 @@
                         
                         {% if profile_user.is_venue_manager or profile_user.is_admin_user %}
                             <div class="col-md-4">
-                                <a href="{% url 'venues:manager_dashboard' %}" class="btn btn-outline-success w-100 mb-2">
+                                <a href="{% url 'venues:manager_dashboard' %}" class="btn btn-outline-success w-100 quick-link d-flex flex-column justify-content-center mb-0">
                                     <i class="fas fa-building d-block mb-1"></i>
                                     Venue Manager
                                 </a>
@@ -131,7 +254,7 @@
                         
                         {% if profile_user.is_admin_user %}
                             <div class="col-md-4">
-                                <a href="{% url 'analytics:admin_dashboard' %}" class="btn btn-outline-danger w-100 mb-2">
+                                <a href="{% url 'analytics:admin_dashboard' %}" class="btn btn-outline-danger w-100 quick-link d-flex flex-column justify-content-center mb-0">
                                     <i class="fas fa-cog d-block mb-1"></i>
                                     Admin Dashboard
                                 </a>
@@ -139,14 +262,14 @@
                         {% endif %}
                         
                         <div class="col-md-4">
-                            <a href="{% url 'payments:order_history' %}" class="btn btn-outline-info w-100 mb-2">
+                            <a href="{% url 'payments:order_history' %}" class="btn btn-outline-info w-100 quick-link d-flex flex-column justify-content-center mb-0">
                                 <i class="fas fa-shopping-bag d-block mb-1"></i>
                                 My Orders
                             </a>
                         </div>
                         
                         <div class="col-md-4">
-                            <a href="{% url 'events:home' %}" class="btn btn-outline-primary w-100 mb-2">
+                            <a href="{% url 'events:home' %}" class="btn btn-outline-primary w-100 quick-link d-flex flex-column justify-content-center mb-0">
                                 <i class="fas fa-search d-block mb-1"></i>
                                 Browse Events
                             </a>
@@ -155,6 +278,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
 {% endblock %}

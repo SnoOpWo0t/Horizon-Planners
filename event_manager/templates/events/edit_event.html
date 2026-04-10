@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Event - EventEase{% endblock %}
+
+{% block extra_css %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Manrope:wght@500;600;700&display=swap');
+
+    .edit-shell {
+        --ink: #0f172a;
+        --muted: #475569;
+        --line: #d9e2ec;
+        --brand: #0f766e;
+        --brand-2: #0891b2;
+        --accent: #f59e0b;
+        font-family: 'Manrope', sans-serif;
+        color: var(--ink);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .edit-shell::before,
+    .edit-shell::after {
+        content: "";
+        position: absolute;
+        border-radius: 999px;
+        pointer-events: none;
+        filter: blur(2px);
+        opacity: 0.22;
+    }
+
+    .edit-shell::before {
+        width: 320px;
+        height: 320px;
+        top: -130px;
+        right: -90px;
+        background: radial-gradient(circle, #0ea5e9 0%, transparent 70%);
+    }
+
+    .edit-shell::after {
+        width: 280px;
+        height: 280px;
+        bottom: -100px;
+        left: -90px;
+        background: radial-gradient(circle, #14b8a6 0%, transparent 70%);
+    }
+
+    .edit-hero {
+        background: linear-gradient(135deg, #0f766e 0%, #0b7285 45%, #075985 100%);
+        color: #fff;
+        border-radius: 20px;
+        padding: 1.35rem 1.5rem;
+        box-shadow: 0 20px 38px rgba(8, 47, 73, 0.28);
+    }
+
+    .edit-hero h2 {
+        font-family: 'Sora', sans-serif;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        margin-bottom: 0.2rem;
+    }
+
+    .hero-chip {
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.14);
+        border-radius: 999px;
+        padding: 0.3rem 0.75rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .edit-card {
+        border-radius: 20px;
+        border: 1px solid rgba(15, 118, 110, 0.2);
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(250, 253, 255, 0.9));
+        backdrop-filter: blur(8px);
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+    }
+
+    .section-head {
+        font-family: 'Sora', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 0.9rem;
+        border-left: 4px solid var(--brand-2);
+        padding-left: 0.7rem;
+    }
+
+    .form-label {
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 0.88rem;
+        letter-spacing: 0.2px;
+    }
+
+    .edit-card input,
+    .edit-card select,
+    .edit-card textarea {
+        border-radius: 12px;
+        border: 1px solid #c9d6e2;
+        min-height: 44px;
+    }
+
+    .edit-card textarea {
+        min-height: 110px;
+    }
+
+    .edit-card input:focus,
+    .edit-card select:focus,
+    .edit-card textarea:focus {
+        border-color: #0ea5e9;
+        box-shadow: 0 0 0 0.22rem rgba(14, 165, 233, 0.16);
+    }
+
+    .switch-grid {
+        border: 1px dashed #b9c9d8;
+        border-radius: 14px;
+        padding: 0.9rem 1rem;
+        background: rgba(14, 165, 233, 0.04);
+    }
+
+    .switch-grid .form-check-label {
+        font-weight: 600;
+        color: var(--muted);
+    }
+
+    .action-row .btn {
+        border-radius: 12px;
+        padding: 0.65rem 1rem;
+        font-weight: 700;
+    }
+
+    html.dark-mode .edit-shell {
+        --ink: #e2e8f0;
+        --muted: #94a3b8;
+        --line: #334155;
+    }
+
+    html.dark-mode .edit-card {
+        border-color: rgba(56, 189, 248, 0.35);
+        background: linear-gradient(145deg, rgba(19, 25, 35, 0.9), rgba(20, 31, 45, 0.85));
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    html.dark-mode .section-head,
+    html.dark-mode .form-label {
+        color: #dbe7f3;
+    }
+
+    html.dark-mode .edit-card input,
+    html.dark-mode .edit-card select,
+    html.dark-mode .edit-card textarea {
+        border-color: #3b4d63;
+        background: rgba(15, 23, 35, 0.7);
+        color: #e2e8f0;
+    }
+
+    html.dark-mode .switch-grid {
+        border-color: #365572;
+        background: rgba(14, 165, 233, 0.08);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5 edit-shell">
+    <div class="edit-hero d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h2><i class="fas fa-pen-ruler me-2"></i>Edit Event</h2>
+            <p class="mb-0 opacity-75">Refine details, schedule, capacity and publication options.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <span class="hero-chip"><i class="fas fa-calendar-day"></i>{{ object.event_date }}</span>
+            <span class="hero-chip"><i class="fas fa-users"></i>{{ object.total_seats }} seats</span>
+            <a href="{% url 'events:manage_event' object.pk %}" class="btn btn-light btn-sm" data-vt-link>Back to Manage</a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-11">
+            <div class="card edit-card">
+                <div class="card-body p-4 p-lg-5">
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Please fix the highlighted errors.</strong>
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" class="row g-3">
+                        {% csrf_token %}
+
+                        <div class="col-12"><h6 class="section-head">Identity</h6></div>
+
+                        <div class="col-md-8">
+                            <label class="form-label" for="id_title">Title</label>
+                            {{ form.title }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="id_category">Category</label>
+                            {{ form.category }}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label" for="id_description">Description</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="col-12 mt-3"><h6 class="section-head">Schedule</h6></div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="id_venue">Venue</label>
+                            {{ form.venue }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="id_start_date">Start</label>
+                            {{ form.start_date }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="id_end_date">End</label>
+                            {{ form.end_date }}
+                        </div>
+
+                        <div class="col-12 mt-3"><h6 class="section-head">Capacity And Pricing</h6></div>
+
+                        <div class="col-md-4">
+                            <label class="form-label" for="id_max_capacity">Max Capacity</label>
+                            {{ form.max_capacity }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="id_min_capacity">Min Capacity</label>
+                            {{ form.min_capacity }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="id_base_price">Base Price</label>
+                            {{ form.base_price }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="id_registration_deadline">Registration Deadline</label>
+                            {{ form.registration_deadline }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="id_age_restriction">Age Restriction</label>
+                            {{ form.age_restriction }}
+                        </div>
+
+                        <div class="col-12 mt-3"><h6 class="section-head">Media And Flags</h6></div>
+
+                        <div class="col-12">
+                            <label class="form-label" for="id_special_instructions">Special Instructions</label>
+                            {{ form.special_instructions }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="id_poster_image">Poster Image</label>
+                            {{ form.poster_image }}
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end gap-4 switch-grid flex-wrap">
+                            <div class="form-check">{{ form.requires_approval }} <label class="form-check-label" for="id_requires_approval">Require approval</label></div>
+                            <div class="form-check">{{ form.is_free }} <label class="form-check-label" for="id_is_free">Free event</label></div>
+                            <div class="form-check">{{ form.is_active }} <label class="form-check-label" for="id_is_active">Active</label></div>
+                            <div class="form-check">{{ form.is_featured }} <label class="form-check-label" for="id_is_featured">Featured</label></div>
+                        </div>
+
+                        <div class="col-12 d-flex justify-content-between mt-4 action-row">
+                            <a href="{% url 'events:manage_event' object.pk %}" class="btn btn-secondary" data-vt-link>Cancel</a>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (!('startViewTransition' in document)) {
+            return;
+        }
+
+        document.querySelectorAll('a[data-vt-link]').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                const target = e.currentTarget.getAttribute('href');
+                if (!target || target.startsWith('#')) {
+                    return;
+                }
+                e.preventDefault();
+                document.startViewTransition(function () {
+                    window.location.href = target;
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}
