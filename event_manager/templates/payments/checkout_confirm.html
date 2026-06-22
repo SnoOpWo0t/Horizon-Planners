@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Confirmation - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Progress indicator -->
+            <div class="mb-4">
+                <div class="progress mb-3">
+                    <div class="progress-bar" role="progressbar" style="width: 100%"></div>
+                </div>
+                <small class="text-muted">Step 3 of 3 - Booking Submitted</small>
+            </div>
+
+            <!-- Success Alert -->
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>
+                <strong>Booking Submitted Successfully!</strong>
+                <p class="mb-0 mt-2">Our team will call you shortly to confirm your booking and payment method.</p>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Main Card -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>Booking Confirmation
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Order Details -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-info-circle me-2"></i>Order Details
+                        </h6>
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Order Number:</div>
+                            <div class="col-8 fw-bold">{{ order.order_number }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Booking Date:</div>
+                            <div class="col-8">{{ order.created_at|date:"M d, Y - g:i A" }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Status:</div>
+                            <div class="col-8">
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-hourglass-half me-1"></i>Awaiting Confirmation
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Details -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-calendar-alt me-2"></i>Event Details
+                        </h6>
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Event:</div>
+                            <div class="col-8 fw-bold">{{ event.title }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Date & Time:</div>
+                            <div class="col-8">{{ event.start_date|date:"M d, Y - g:i A" }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Venue:</div>
+                            <div class="col-8">{{ event.venue.name }}, {{ event.venue.address }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Ticket Details -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-ticket-alt me-2"></i>Ticket Details
+                        </h6>
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Quantity:</div>
+                            <div class="col-8 fw-bold">{{ order.ticket_quantity }} ticket(s)</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Unit Price:</div>
+                            <div class="col-8">${{ order.unit_price }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Total Amount:</div>
+                            <div class="col-8 fw-bold text-success" style="font-size: 1.2rem;">${{ order.total_amount }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Details -->
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h6 class="mb-3">
+                            <i class="fas fa-credit-card me-2"></i>Payment Information
+                        </h6>
+                        <div class="row mb-2">
+                            <div class="col-4 text-muted">Payment Method:</div>
+                            <div class="col-8 fw-bold">
+                                <i class="fas fa-money-bill-wave me-1"></i>Cash on Delivery (COD)
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-4 text-muted">Payment Status:</div>
+                            <div class="col-8">
+                                <span class="badge bg-info">{{ payment.get_status_display }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Information -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-user me-2"></i>Customer Information
+                        </h6>
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Name:</div>
+                            <div class="col-8">{{ order.customer_name }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Email:</div>
+                            <div class="col-8">{{ order.customer_email }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-4 text-muted">Phone:</div>
+                            <div class="col-8">{{ order.customer_phone|default:"Not provided" }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Next Steps -->
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-tasks me-2"></i>What Happens Next?
+                        </h6>
+                        <ol class="mb-0 ms-3">
+                            <li>Our team will review your booking</li>
+                            <li>We'll call you on your registered phone number to confirm</li>
+                            <li>You'll receive confirmation email with ticket details</li>
+                            <li>You can download and print your tickets</li>
+                        </ol>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-sm-flex justify-content-sm-between mt-4">
+                        <a href="{% url 'payments:order_history' %}" class="btn btn-primary btn-lg flex-grow-1">
+                            <i class="fas fa-history me-2"></i>View My Bookings
+                        </a>
+                        <a href="{% url 'events:event_list' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-search me-2"></i>Browse More Events
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support -->
+            <div class="mt-4 p-3 border rounded bg-light text-center">
+                <p class="mb-0 small text-muted">
+                    <i class="fas fa-headset me-1"></i>
+                    Need help? Contact our support team at <strong>support@eventease.com</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.badge {
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+}
+</style>
+{% endblock %}

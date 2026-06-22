@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Deactivate Venue - {{ venue.name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Back Button -->
+            <a href="{% url 'venues:manager_dashboard' %}" class="btn btn-outline-secondary mb-4">
+                <i class="fas fa-arrow-left me-2"></i>Back
+            </a>
+
+            <!-- Warning Card -->
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Warning!</strong> You are about to deactivate a venue. The venue manager will be notified with the reason.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Deactivate Form -->
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="fas fa-ban me-2"></i>Deactivate Venue
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Venue Details -->
+                    <div class="p-3 bg-light rounded mb-4">
+                        <h5>{{ venue.name }}</h5>
+                        <p class="mb-1 text-muted">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            {{ venue.address }}
+                        </p>
+                        <p class="mb-1 text-muted">
+                            <i class="fas fa-phone me-2"></i>
+                            {{ venue.contact_number }}
+                        </p>
+                        <p class="mb-1 text-muted">
+                            <i class="fas fa-user me-2"></i>
+                            Manager: <strong>{{ venue.manager.get_full_name }}</strong> ({{ venue.manager.email }})
+                        </p>
+                        <p class="mb-0 text-muted">
+                            <i class="fas fa-chair me-2"></i>
+                            Capacity: <strong>{{ venue.capacity }}</strong> people
+                        </p>
+                    </div>
+
+                    <form method="post" class="needs-validation">
+                        {% csrf_token %}
+
+                        <!-- Reason Selection -->
+                        <div class="mb-4">
+                            <label for="reason" class="form-label">
+                                <strong>Reason for Deactivation *</strong>
+                            </label>
+                            <select class="form-select" id="reason" name="reason" required>
+                                <option value="">Select a reason...</option>
+                                {% for value, label in reasons %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Select the reason that will be communicated to the venue manager</small>
+                        </div>
+
+                        <!-- Additional Message -->
+                        <div class="mb-4">
+                            <label for="message" class="form-label">
+                                <strong>Additional Message</strong>
+                            </label>
+                            <textarea class="form-control" id="message" name="message" rows="5" placeholder="Add any additional details or instructions for the venue manager..."></textarea>
+                            <small class="form-text text-muted">This message will be included in the notification sent to the venue manager</small>
+                        </div>
+
+                        <!-- Notification Preview -->
+                        <div class="card bg-light mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-bell me-2"></i>Notification Preview
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2">
+                                    <strong>To:</strong> {{ venue.manager.email }}
+                                </p>
+                                <p class="mb-2">
+                                    <strong>Subject:</strong> Your Venue "{{ venue.name }}" Has Been Deactivated
+                                </p>
+                                <p class="text-muted">
+                                    Your venue has been deactivated by the admin due to <span id="reason-preview">the selected reason</span>.
+                                </p>
+                                <p class="text-muted">
+                                    Please contact support for more information and to discuss further steps.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-between">
+                            <button type="submit" class="btn btn-warning btn-lg flex-grow-1">
+                                <i class="fas fa-ban me-2"></i>Deactivate Venue
+                            </button>
+                            <a href="{% url 'venues:manager_dashboard' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Info -->
+            <div class="mt-4 p-3 border rounded">
+                <h6 class="mb-2">
+                    <i class="fas fa-info-circle me-2"></i>What Happens?
+                </h6>
+                <ul class="mb-0 small">
+                    <li>The venue will be marked as inactive immediately</li>
+                    <li>The venue manager will receive an email notification with the reason</li>
+                    <li>The venue won't be visible to customers</li>
+                    <li>Venue bookings will not be accepted</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('reason').addEventListener('change', function() {
+    const reasonText = this.options[this.selectedIndex].text;
+    document.getElementById('reason-preview').textContent = reasonText.toLowerCase();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Details - {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- Back Button -->
+            <a href="{% url 'payments:order_history' %}" class="btn btn-outline-secondary mb-4">
+                <i class="fas fa-arrow-left me-2"></i>Back to My Orders
+            </a>
+
+            <div class="row">
+                <!-- Main Details -->
+                <div class="col-lg-8">
+                    <!-- Order Header -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <div class="row align-items-center">
+                                <div class="col">
+                                    <h4 class="mb-0">Order {{ order.order_number }}</h4>
+                                    <small>{{ order.created_at|date:"M d, Y - g:i A" }}</small>
+                                </div>
+                                <div class="col-auto">
+                                    {% if order.status == 'confirmed' %}
+                                        <span class="badge bg-success" style="font-size: 0.9rem;">CONFIRMED</span>
+                                    {% elif order.status == 'pending' %}
+                                        <span class="badge bg-warning" style="font-size: 0.9rem;">PENDING</span>
+                                    {% elif order.status == 'cancelled' %}
+                                        <span class="badge bg-danger" style="font-size: 0.9rem;">CANCELLED</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary" style="font-size: 0.9rem;">{{ order.get_status_display }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Event Information -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-calendar-alt me-2"></i>Event Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <h4 class="mb-3">{{ event.title }}</h4>
+                            
+                            {% if event.poster_image %}
+                                <div class="mb-3">
+                                    <img src="{{ event.poster_image.url }}" alt="{{ event.title }}" class="img-fluid rounded" style="max-height: 300px;">
+                                </div>
+                            {% endif %}
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-2">
+                                        <i class="fas fa-calendar-alt me-2"></i>Date & Time
+                                    </h6>
+                                    <p>
+                                        {% if event.start_date %}
+                                            <strong>{{ event.start_date|date:"l, M d, Y" }}</strong><br>
+                                            <small class="text-muted">{{ event.start_date|time:"g:i A" }} - {{ event.end_date|time:"g:i A" }}</small>
+                                        {% else %}
+                                            <strong>{{ event.event_date|date:"l, M d, Y" }}</strong><br>
+                                            <small class="text-muted">{{ event.start_time|time:"g:i A" }}</small>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-2">
+                                        <i class="fas fa-map-marker-alt me-2"></i>Venue
+                                    </h6>
+                                    <p>
+                                        <strong>{{ event.venue.name }}</strong><br>
+                                        <small class="text-muted">{{ event.venue.address }}</small>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-2">
+                                        <i class="fas fa-tag me-2"></i>Category
+                                    </h6>
+                                    <p>{{ event.category.name }}</p>
+                                </div>
+                            </div>
+
+                            {% if event.description %}
+                                <hr>
+                                <h6 class="text-muted mb-2">Description</h6>
+                                <p class="text-muted">{{ event.description }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Ticket Information -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-ticket-alt me-2"></i>Ticket Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th class="text-end">Quantity</th>
+                                        <th class="text-end">Unit Price</th>
+                                        <th class="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Event Tickets</td>
+                                        <td class="text-end">{{ order.ticket_quantity }}</td>
+                                        <td class="text-end">${{ order.unit_price }}</td>
+                                        <td class="text-end">${{ order.total_amount }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Payment Information -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-credit-card me-2"></i>Payment Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-2">Payment Method</h6>
+                                    {% if payment.payment_method == 'cod' %}
+                                        <p>
+                                            <i class="fas fa-money-bill-wave me-2"></i>
+                                            <strong>Cash on Delivery (COD)</strong>
+                                        </p>
+                                    {% else %}
+                                        <p><strong>{{ payment.get_payment_method_display }}</strong></p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-2">Payment Status</h6>
+                                    {% if payment.status == 'completed' %}
+                                        <p><span class="badge bg-success">Completed</span></p>
+                                    {% elif payment.status == 'pending' %}
+                                        <p><span class="badge bg-warning">Pending</span></p>
+                                    {% elif payment.status == 'failed' %}
+                                        <p><span class="badge bg-danger">Failed</span></p>
+                                    {% else %}
+                                        <p><span class="badge bg-secondary">{{ payment.get_status_display }}</span></p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-2">Amount Paid</h6>
+                                    <p>
+                                        <strong class="text-success" style="font-size: 1.3rem;">${{ payment.amount }}</strong>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="text-muted mb-2">Payment Date</h6>
+                                    <p>
+                                        {% if payment.processed_at %}
+                                            {{ payment.processed_at|date:"M d, Y - g:i A" }}
+                                        {% else %}
+                                            <span class="text-muted">Awaiting processing</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar - Order Summary -->
+                <div class="col-lg-4">
+                    <!-- Order Summary Card -->
+                    <div class="card mb-4 sticky-top" style="top: 20px;">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">
+                                <i class="fas fa-receipt me-2"></i>Order Summary
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3 pb-3 border-bottom">
+                                <small class="text-muted d-block mb-1">Order Number</small>
+                                <strong>{{ order.order_number }}</strong>
+                            </div>
+
+                            <div class="mb-3 pb-3 border-bottom">
+                                <small class="text-muted d-block mb-1">Order Date</small>
+                                <strong>{{ order.created_at|date:"M d, Y" }}</strong>
+                            </div>
+
+                            <div class="mb-3 pb-3 border-bottom">
+                                <small class="text-muted d-block mb-1">Tickets</small>
+                                <strong>{{ order.ticket_quantity }} ticket(s)</strong>
+                            </div>
+
+                            <div class="mb-3 pb-3 border-bottom">
+                                <small class="text-muted d-block mb-1">Price per Ticket</small>
+                                <strong>${{ order.unit_price }}</strong>
+                            </div>
+
+                            <div class="p-3 bg-light rounded mb-3">
+                                <small class="text-muted d-block mb-1">Total Amount</small>
+                                <h4 class="text-success mb-0">${{ order.total_amount }}</h4>
+                            </div>
+
+                            <div class="mb-3 pb-3 border-bottom">
+                                <small class="text-muted d-block mb-1">Status</small>
+                                {% if order.status == 'confirmed' %}
+                                    <span class="badge bg-success">Confirmed</span>
+                                {% elif order.status == 'pending' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ order.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+
+                            {% if order.status == 'confirmed' %}
+                                <button class="btn btn-primary w-100 mb-2" onclick="window.print()">
+                                    <i class="fas fa-download me-2"></i>Download/Print
+                                </button>
+                            {% endif %}
+
+                            <a href="{% url 'events:event_detail' event.id %}" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-eye me-2"></i>View Event
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Customer Information -->
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">
+                                <i class="fas fa-user me-2"></i>Customer Information
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <small class="text-muted d-block mb-1">Name</small>
+                                <strong>{{ order.customer_name }}</strong>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted d-block mb-1">Email</small>
+                                <a href="mailto:{{ order.customer_email }}">{{ order.customer_email }}</a>
+                            </div>
+                            {% if order.customer_phone %}
+                                <div>
+                                    <small class="text-muted d-block mb-1">Phone</small>
+                                    <a href="tel:{{ order.customer_phone }}">{{ order.customer_phone }}</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .sticky-top {
+        display: none !important;
+    }
+}
+</style>
+{% endblock %}

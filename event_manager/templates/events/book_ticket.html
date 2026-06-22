@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Tickets - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-ticket-alt me-2"></i>Book Tickets
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- Event Info Section -->
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h5>{{ event.title }}</h5>
+                        <p class="mb-1 text-muted">
+                            <i class="fas fa-calendar me-2"></i>{{ event.start_date|date:"M d, Y - g:i A" }}
+                        </p>
+                        <p class="mb-1 text-muted">
+                            <i class="fas fa-map-marker-alt me-2"></i>{{ event.venue.name }}
+                        </p>
+                        <p class="mb-0">
+                            <strong>Price per ticket:</strong> ${{ event.base_price }}
+                        </p>
+                    </div>
+
+                    <!-- Availability Info -->
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>{{ event.available_seats }}</strong> tickets available
+                    </div>
+
+                    <!-- Form Errors -->
+                    {% if form.errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong>Please fix the following errors:</strong>
+                            <ul class="mb-0 mt-2">
+                                {% for field in form %}
+                                    {% for error in field.errors %}
+                                        <li>{{ field.label }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                                {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endif %}
+
+                    <!-- Booking Form -->
+                    <form method="post" class="needs-validation">
+                        {% csrf_token %}
+
+                        <!-- Ticket Type Selection -->
+                        <div class="mb-4">
+                            <label for="{{ form.ticket_type.id_for_label }}" class="form-label">
+                                <strong>Ticket Type *</strong>
+                            </label>
+                            <select class="form-select {% if form.ticket_type.errors %}is-invalid{% endif %}" 
+                                    id="{{ form.ticket_type.id_for_label }}" 
+                                    name="ticket_type" 
+                                    required>
+                                <option value="">Select a ticket type</option>
+                                {% for option in form.ticket_type %}
+                                    {{ option.tag }}
+                                {% endfor %}
+                            </select>
+                            {% if form.ticket_type.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.ticket_type.errors|first }}
+                                </div>
+                            {% endif %}
+                            {% if form.ticket_type.help_text %}
+                                <small class="form-text text-muted">{{ form.ticket_type.help_text|safe }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Quantity Selection -->
+                        <div class="mb-4">
+                            <label for="{{ form.quantity.id_for_label }}" class="form-label">
+                                <strong>Number of Tickets *</strong>
+                            </label>
+                            <input type="number" 
+                                   class="form-control {% if form.quantity.errors %}is-invalid{% endif %}" 
+                                   id="{{ form.quantity.id_for_label }}" 
+                                   name="quantity" 
+                                   min="1" 
+                                   max="10"
+                                   required
+                                   placeholder="Enter quantity">
+                            {% if form.quantity.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.quantity.errors|first }}
+                                </div>
+                            {% endif %}
+                            {% if form.quantity.help_text %}
+                                <small class="form-text text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>{{ form.quantity.help_text|safe }}
+                                </small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Total Price Preview -->
+                        <div class="alert alert-light border-secondary mb-4">
+                            <div class="row">
+                                <div class="col-6">
+                                    <p class="mb-0"><strong>Unit Price:</strong></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <p class="mb-0">${{ event.base_price }}</p>
+                                </div>
+                            </div>
+                            <div class="row mt-2" id="total-preview">
+                                <div class="col-6">
+                                    <p class="mb-0"><strong>Total (estimated):</strong></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <p class="mb-0"><strong id="total-amount">$0.00</strong></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-between">
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                                <i class="fas fa-check me-2"></i>Proceed to Payment
+                            </button>
+                            <a href="{% url 'events:event_detail' event.id %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const quantityInput = document.getElementById('{{ form.quantity.id_for_label }}');
+    const unitPrice = {{ event.base_price }};
+    const totalAmountSpan = document.getElementById('total-amount');
+
+    function updateTotal() {
+        const quantity = parseInt(quantityInput.value) || 0;
+        const total = (quantity * unitPrice).toFixed(2);
+        totalAmountSpan.textContent = '$' + total;
+    }
+
+    quantityInput.addEventListener('change', updateTotal);
+    quantityInput.addEventListener('input', updateTotal);
+    updateTotal(); // Initial calculation
+});
+</script>
+{% endblock %}

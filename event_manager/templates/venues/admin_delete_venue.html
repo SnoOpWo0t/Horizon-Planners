@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Venue - {{ venue.name }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Back Button -->
+            <a href="{% url 'venues:manager_dashboard' %}" class="btn btn-outline-secondary mb-4">
+                <i class="fas fa-arrow-left me-2"></i>Back
+            </a>
+
+            <!-- Danger Alert -->
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                <strong>Danger Zone!</strong> You are about to permanently delete a venue. This action cannot be undone. The venue manager will be notified.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Delete Form -->
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-trash-alt me-2"></i>Delete Venue
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Venue Details -->
+                    <div class="p-3 bg-light rounded mb-4">
+                        <h5>{{ venue.name }}</h5>
+                        <p class="mb-1 text-muted">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            {{ venue.address }}
+                        </p>
+                        <p class="mb-1 text-muted">
+                            <i class="fas fa-phone me-2"></i>
+                            {{ venue.contact_number }}
+                        </p>
+                        <p class="mb-1 text-muted">
+                            <i class="fas fa-user me-2"></i>
+                            Manager: <strong>{{ venue.manager.get_full_name }}</strong> ({{ venue.manager.email }})
+                        </p>
+                        <p class="mb-0 text-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Active Bookings:</strong> {{ venue.bookings.count }}
+                        </p>
+                    </div>
+
+                    <!-- Warning Box -->
+                    <div class="alert alert-danger mb-4">
+                        <i class="fas fa-warning me-2"></i>
+                        <strong>Warning:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>This venue and all associated data will be permanently deleted</li>
+                            <li>All venue bookings may be affected</li>
+                            <li>This action cannot be reversed</li>
+                            <li>The venue manager will be notified with the deletion reason</li>
+                        </ul>
+                    </div>
+
+                    <form method="post" class="needs-validation">
+                        {% csrf_token %}
+
+                        <!-- Reason Selection -->
+                        <div class="mb-4">
+                            <label for="reason" class="form-label">
+                                <strong>Reason for Deletion *</strong>
+                            </label>
+                            <select class="form-select" id="reason" name="reason" required>
+                                <option value="">Select a reason...</option>
+                                {% for value, label in reasons %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Select the reason that will be communicated to the venue manager</small>
+                        </div>
+
+                        <!-- Additional Message -->
+                        <div class="mb-4">
+                            <label for="message" class="form-label">
+                                <strong>Additional Message</strong>
+                            </label>
+                            <textarea class="form-control" id="message" name="message" rows="5" placeholder="Add any additional details or instructions for the venue manager..."></textarea>
+                            <small class="form-text text-muted">This message will be included in the notification sent to the venue manager</small>
+                        </div>
+
+                        <!-- Confirmation Checkbox -->
+                        <div class="form-check mb-4 p-3 bg-danger bg-opacity-10 rounded">
+                            <input class="form-check-input" type="checkbox" id="confirm" required>
+                            <label class="form-check-label" for="confirm">
+                                <strong class="text-danger">I understand that this action will permanently delete the venue and cannot be undone. I have notified relevant parties.</strong>
+                            </label>
+                        </div>
+
+                        <!-- Notification Preview -->
+                        <div class="card bg-light mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-bell me-2"></i>Notification Preview
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2">
+                                    <strong>To:</strong> {{ venue.manager.email }}
+                                </p>
+                                <p class="mb-2">
+                                    <strong>Subject:</strong> Your Venue "{{ venue.name }}" Has Been Deleted
+                                </p>
+                                <p class="text-muted">
+                                    Your venue has been permanently deleted by the admin due to <span id="reason-preview">the selected reason</span>.
+                                </p>
+                                <p class="text-muted">
+                                    Please contact support for more information.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-between">
+                            <button type="submit" class="btn btn-danger btn-lg flex-grow-1">
+                                <i class="fas fa-trash-alt me-2"></i>Delete Venue Permanently
+                            </button>
+                            <a href="{% url 'venues:manager_dashboard' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Info -->
+            <div class="mt-4 p-3 border border-danger rounded">
+                <h6 class="mb-2 text-danger">
+                    <i class="fas fa-info-circle me-2"></i>Before You Delete
+                </h6>
+                <ul class="mb-0 small">
+                    <li>Verify the venue details carefully</li>
+                    <li>Check if there are active bookings that need to be handled</li>
+                    <li>Consider deactivating instead if unsure</li>
+                    <li>Ensure proper communication with venue manager</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('reason').addEventListener('change', function() {
+    const reasonText = this.options[this.selectedIndex].text;
+    document.getElementById('reason-preview').textContent = reasonText.toLowerCase();
+});
+</script>
+{% endblock %}

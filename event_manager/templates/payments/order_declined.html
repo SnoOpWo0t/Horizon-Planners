@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Declined - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Error Banner -->
+            <div class="text-center mb-5">
+                <div style="font-size: 4rem; color: #dc3545; margin-bottom: 1rem;">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <h2 class="text-danger mb-2">Booking Declined</h2>
+                <p class="text-muted fs-5">Unfortunately, we couldn't process your booking.</p>
+            </div>
+
+            <!-- Declined Notice Card -->
+            <div class="card border-danger mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Booking Status
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Order Number -->
+                    <div class="p-3 bg-light rounded mb-4 text-center">
+                        <p class="text-muted mb-2">Order Number</p>
+                        <h3 class="text-danger">{{ order.order_number }}</h3>
+                    </div>
+
+                    <!-- Reason for Decline -->
+                    <div class="alert alert-danger">
+                        <h6 class="alert-heading mb-2">
+                            <i class="fas fa-info-circle me-2"></i>Why Was Your Booking Declined?
+                        </h6>
+                        <p class="mb-0">
+                            Your booking request has been reviewed and unfortunately could not be approved at this time. 
+                            This may be due to:
+                        </p>
+                        <ul class="mb-0 mt-2">
+                            <li>Event capacity has been reached</li>
+                            <li>Technical issues with the booking system</li>
+                            <li>Incomplete or incorrect information provided</li>
+                            <li>Duplicate booking detected</li>
+                        </ul>
+                    </div>
+
+                    <!-- Event Details -->
+                    <div class="mb-4">
+                        <h6 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-calendar-alt me-2"></i>Event Information
+                        </h6>
+                        <div class="row mb-3">
+                            <div class="col-md-3 text-muted"><strong>Event:</strong></div>
+                            <div class="col-md-9">{{ event.title }}</div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3 text-muted"><strong>Date & Time:</strong></div>
+                            <div class="col-md-9">{{ event.start_date|date:"l, M d, Y - g:i A" }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3 text-muted"><strong>Venue:</strong></div>
+                            <div class="col-md-9">
+                                {{ event.venue.name }}<br>
+                                <small class="text-muted">{{ event.venue.address }}</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Booking Details -->
+                    <div class="mb-4 p-3 bg-light rounded">
+                        <h6 class="mb-3">
+                            <i class="fas fa-ticket-alt me-2"></i>Booking Details
+                        </h6>
+                        <div class="row mb-2">
+                            <div class="col-6"><strong>Requested Tickets:</strong></div>
+                            <div class="col-6 text-end">{{ order.ticket_quantity }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6"><strong>Total Amount:</strong></div>
+                            <div class="col-6 text-end">${{ order.total_amount }}</div>
+                        </div>
+                    </div>
+
+                    <!-- What You Can Do -->
+                    <div class="mb-4 p-3 border border-info rounded">
+                        <h6 class="mb-3 text-info">
+                            <i class="fas fa-lightbulb me-2"></i>What You Can Do
+                        </h6>
+                        <ul class="mb-0">
+                            <li><strong>Contact Our Support Team:</strong> We'll help you understand what went wrong</li>
+                            <li><strong>Try Booking Again:</strong> With correct information if there was an issue</li>
+                            <li><strong>Browse Similar Events:</strong> Explore other upcoming events you might enjoy</li>
+                            <li><strong>Waitlist Option:</strong> Ask us to add you to the waitlist for this event</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-between mb-4">
+                <a href="mailto:support@eventease.com" class="btn btn-danger btn-lg flex-grow-1">
+                    <i class="fas fa-envelope me-2"></i>Contact Support
+                </a>
+                <a href="{% url 'events:event_detail' event.id %}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-redo me-2"></i>Try Again
+                </a>
+            </div>
+
+            <!-- Browse Events Button -->
+            <div class="d-grid">
+                <a href="{% url 'events:event_list' %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-search me-2"></i>Browse Other Events
+                </a>
+            </div>
+
+            <!-- Support Information -->
+            <div class="p-4 bg-light rounded text-center mt-4">
+                <h6 class="mb-2">
+                    <i class="fas fa-headset me-2"></i>Still Need Help?
+                </h6>
+                <p class="mb-2">
+                    Our customer support team is here to assist you:
+                </p>
+                <p class="mb-0">
+                    <strong>Email:</strong> support@eventease.com<br>
+                    <strong>Phone:</strong> 1-800-EVENTS-1<br>
+                    <strong>Hours:</strong> Monday - Friday, 9 AM - 6 PM (EST)
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

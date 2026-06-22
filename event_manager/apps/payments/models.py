@@ -16,9 +16,11 @@ class Payment(TimeStampedModel):
         REFUNDED = 'refunded', 'Refunded'
     
     class PaymentMethod(models.TextChoices):
+        COD = 'cod', 'Cash on Delivery'
         CREDIT_CARD = 'credit_card', 'Credit Card'
         DEBIT_CARD = 'debit_card', 'Debit Card'
         PAYPAL = 'paypal', 'PayPal'
+        BKASH = 'bkash', 'bKash'
         BANK_TRANSFER = 'bank_transfer', 'Bank Transfer'
     
     # Payment identification

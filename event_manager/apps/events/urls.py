@@ -19,6 +19,10 @@ urlpatterns = [
     path('manage/event/<int:pk>/edit/', views.EditEventView.as_view(), name='edit_event'),
     path('manage/event/<int:pk>/delete/', views.DeleteEventView.as_view(), name='delete_event'),
     
+    # Admin actions
+    path('admin/event/<int:event_id>/deactivate/', views.DeactivateEventView.as_view(), name='admin_deactivate_event'),
+    path('admin/event/<int:event_id>/delete/', views.DeleteEventView.as_view(), name='admin_delete_event'),
+    
     # Analytics
     path('manage/analytics/', views.EventAnalyticsView.as_view(), name='event_analytics'),
     path('manage/event/<int:pk>/analytics/', views.EventDetailAnalyticsView.as_view(), name='event_detail_analytics'),

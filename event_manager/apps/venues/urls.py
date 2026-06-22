@@ -15,6 +15,10 @@ urlpatterns = [
     path('manage/venue/<slug:slug>/edit/', views.EditVenueView.as_view(), name='edit_venue'),
     path('manage/venue/<slug:slug>/delete/', views.DeleteVenueView.as_view(), name='delete_venue'),
     
+    # Admin actions
+    path('admin/venue/<int:venue_id>/deactivate/', views.DeactivateVenueView.as_view(), name='admin_deactivate_venue'),
+    path('admin/venue/<int:venue_id>/delete/', views.DeleteVenueAdminView.as_view(), name='admin_delete_venue'),
+    
     # Venue booking management
     path('manage/bookings/', views.VenueBookingsView.as_view(), name='venue_bookings'),
     path('booking-request/<int:pk>/approve/', views.ApproveBookingRequestView.as_view(), name='approve_booking'),

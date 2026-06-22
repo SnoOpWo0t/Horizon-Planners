@@ -59,7 +59,7 @@ class AdminDashboardView(AdminRequiredMixin, TemplateView):
         ).count()
 
         top_events = Event.objects.select_related('venue').annotate(
-            tickets_sold=Coalesce(
+            annotated_tickets_sold=Coalesce(
                 Sum('orders__ticket_quantity', filter=Q(orders__payment__status=Payment.Status.COMPLETED)),
                 Value(0, output_field=IntegerField()),
                 output_field=IntegerField()
@@ -74,7 +74,7 @@ class AdminDashboardView(AdminRequiredMixin, TemplateView):
                 Value(0.0),
                 output_field=FloatField()
             )
-        ).order_by('-tickets_sold', '-revenue')[:8]
+        ).order_by('-annotated_tickets_sold', '-revenue')[:8]
 
         recent_activities = []
 

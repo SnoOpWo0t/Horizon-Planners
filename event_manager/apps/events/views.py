@@ -104,10 +104,21 @@ class HorizonPlannerDashboardView(HorizonPlannerRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         queryset = self.get_queryset()
         
+        from apps.payments.models import Order
+        
         context['total_events'] = queryset.count()
         context['published_events'] = queryset.filter(status='published').count()
         context['draft_events'] = queryset.filter(status='draft').count()
         context['completed_events'] = queryset.filter(status='completed').count()
+        
+        # Orders stats
+        if self.request.user.is_admin_user:
+            context['pending_orders'] = Order.objects.filter(status='pending').count()
+        else:
+            context['pending_orders'] = Order.objects.filter(
+                event__manager=self.request.user, 
+                status='pending'
+            ).count()
         
         return context
 
@@ -250,6 +261,13 @@ class BookTicketView(LoginRequiredMixin, CreateView):
         context['event'] = get_object_or_404(Event, pk=event_id, status='published')
         return context
     
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        event_id = self.kwargs.get('pk')
+        event = get_object_or_404(Event, pk=event_id, status='published')
+        kwargs['event'] = event
+        return kwargs
+    
     def form_valid(self, form):
         event_id = self.kwargs.get('pk')
         event = get_object_or_404(Event, pk=event_id, status='published')
@@ -263,10 +281,12 @@ class BookTicketView(LoginRequiredMixin, CreateView):
         form.instance.buyer = self.request.user
         form.instance.unit_price = event.base_price
         
-        response = super().form_valid(form)
+        ticket = form.save(commit=False)
+        ticket.total_price = ticket.unit_price * ticket.quantity
+        ticket.save()
         
-        # Redirect to payment processing
-        return redirect('payments:process_payment', event_id=event.id)
+        # Redirect to checkout
+        return redirect('payments:checkout', ticket_id=ticket.id)
 
 
 class CategoryEventListView(ListView):
@@ -459,3 +479,103 @@ class EventShowcaseView(TemplateView):
         ).exclude(status=Event.Status.DRAFT).count()
 
         return context
+
+
+class AdminEventActionsMixin(UserPassesTestMixin):
+    """Mixin to require admin user"""
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.is_admin_user
+
+
+class DeactivateEventView(AdminEventActionsMixin, TemplateView):
+    """Admin deactivate event view"""
+    template_name = 'events/admin_deactivate_event.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        event_id = kwargs.get('event_id')
+        event = get_object_or_404(Event, id=event_id)
+        
+        from apps.core.models import Notification
+        context['event'] = event
+        context['reasons'] = Notification.ActionReason.choices
+        
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        event_id = kwargs.get('event_id')
+        event = get_object_or_404(Event, id=event_id)
+        reason = request.POST.get('reason')
+        message = request.POST.get('message', '')
+        
+        # Deactivate event
+        event.is_active = False
+        event.save()
+        
+        # Send notification to manager
+        from apps.core.models import Notification
+        Notification.objects.create(
+            recipient=event.manager,
+            admin_user=request.user,
+            notification_type=Notification.NotificationType.EVENT_DEACTIVATED,
+            reason=reason,
+            subject=f'Your Event "{event.title}" Has Been Deactivated',
+            message=f"Your event has been deactivated by the admin.\n\nReason: {reason}\n\nMessage: {message}\n\nPlease contact support for more information.",
+            event=event,
+            details={
+                'event_title': event.title,
+                'event_id': event.id,
+                'reason': reason,
+                'admin_message': message
+            }
+        )
+        
+        messages.success(request, f'Event "{event.title}" has been deactivated and notification sent to manager.')
+        return redirect('events:manager_dashboard')
+
+
+class DeleteEventView(AdminEventActionsMixin, TemplateView):
+    """Admin delete event view"""
+    template_name = 'events/admin_delete_event.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        event_id = kwargs.get('event_id')
+        event = get_object_or_404(Event, id=event_id)
+        
+        from apps.core.models import Notification
+        context['event'] = event
+        context['reasons'] = Notification.ActionReason.choices
+        
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        event_id = kwargs.get('event_id')
+        event = get_object_or_404(Event, id=event_id)
+        reason = request.POST.get('reason')
+        message = request.POST.get('message', '')
+        event_title = event.title
+        event_manager = event.manager
+        
+        # Send notification before deleting
+        from apps.core.models import Notification
+        Notification.objects.create(
+            recipient=event_manager,
+            admin_user=request.user,
+            notification_type=Notification.NotificationType.EVENT_DELETED,
+            reason=reason,
+            subject=f'Your Event "{event_title}" Has Been Deleted',
+            message=f"Your event has been deleted by the admin.\n\nReason: {reason}\n\nMessage: {message}\n\nPlease contact support for more information.",
+            details={
+                'event_title': event_title,
+                'event_id': event_id,
+                'reason': reason,
+                'admin_message': message
+            }
+        )
+        
+        # Delete event
+        event.delete()
+        
+        messages.success(request, f'Event has been deleted and notification sent to manager.')
+        return redirect('events:manager_dashboard')

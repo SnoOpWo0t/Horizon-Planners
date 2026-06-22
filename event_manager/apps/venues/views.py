@@ -484,3 +484,103 @@ class BookVenueView(LoginRequiredMixin, DetailView):
                 f'There was an error submitting your booking request: {str(e)}'
             )
             return self.get(request, *args, **kwargs)
+
+
+class AdminVenueActionsMixin(UserPassesTestMixin):
+    """Mixin to require admin user"""
+    def test_func(self):
+        return self.request.user.is_authenticated and self.request.user.is_admin_user
+
+
+class DeactivateVenueView(AdminVenueActionsMixin, TemplateView):
+    """Admin deactivate venue view"""
+    template_name = 'venues/admin_deactivate_venue.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        venue_id = kwargs.get('venue_id')
+        venue = get_object_or_404(Venue, id=venue_id)
+        
+        context['venue'] = venue
+        from apps.core.models import Notification
+        context['reasons'] = Notification.ActionReason.choices
+        
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        venue_id = kwargs.get('venue_id')
+        venue = get_object_or_404(Venue, id=venue_id)
+        reason = request.POST.get('reason')
+        message = request.POST.get('message', '')
+        
+        # Deactivate venue
+        venue.is_active = False
+        venue.save()
+        
+        # Send notification to manager
+        from apps.core.models import Notification
+        Notification.objects.create(
+            recipient=venue.manager,
+            admin_user=request.user,
+            notification_type=Notification.NotificationType.VENUE_DEACTIVATED,
+            reason=reason,
+            subject=f'Your Venue "{venue.name}" Has Been Deactivated',
+            message=f"Your venue has been deactivated by the admin.\n\nReason: {reason}\n\nMessage: {message}\n\nPlease contact support for more information.",
+            venue=venue,
+            details={
+                'venue_name': venue.name,
+                'venue_id': venue.id,
+                'reason': reason,
+                'admin_message': message
+            }
+        )
+        
+        messages.success(request, f'Venue "{venue.name}" has been deactivated and notification sent to manager.')
+        return redirect('venues:manager_dashboard')
+
+
+class DeleteVenueAdminView(AdminVenueActionsMixin, TemplateView):
+    """Admin delete venue view"""
+    template_name = 'venues/admin_delete_venue.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        venue_id = kwargs.get('venue_id')
+        venue = get_object_or_404(Venue, id=venue_id)
+        
+        context['venue'] = venue
+        from apps.core.models import Notification
+        context['reasons'] = Notification.ActionReason.choices
+        
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        venue_id = kwargs.get('venue_id')
+        venue = get_object_or_404(Venue, id=venue_id)
+        reason = request.POST.get('reason')
+        message = request.POST.get('message', '')
+        venue_name = venue.name
+        venue_manager = venue.manager
+        
+        # Send notification before deleting
+        from apps.core.models import Notification
+        Notification.objects.create(
+            recipient=venue_manager,
+            admin_user=request.user,
+            notification_type=Notification.NotificationType.VENUE_DELETED,
+            reason=reason,
+            subject=f'Your Venue "{venue_name}" Has Been Deleted',
+            message=f"Your venue has been deleted by the admin.\n\nReason: {reason}\n\nMessage: {message}\n\nPlease contact support for more information.",
+            details={
+                'venue_name': venue_name,
+                'venue_id': venue_id,
+                'reason': reason,
+                'admin_message': message
+            }
+        )
+        
+        # Delete venue
+        venue.delete()
+        
+        messages.success(request, f'Venue has been deleted and notification sent to manager.')
+        return redirect('venues:manager_dashboard')
