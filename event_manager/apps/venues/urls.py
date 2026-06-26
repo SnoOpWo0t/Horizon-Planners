@@ -14,6 +14,7 @@ urlpatterns = [
     path('manage/venue/<slug:slug>/', views.ManageVenueView.as_view(), name='manage_venue'),
     path('manage/venue/<slug:slug>/edit/', views.EditVenueView.as_view(), name='edit_venue'),
     path('manage/venue/<slug:slug>/delete/', views.DeleteVenueView.as_view(), name='delete_venue'),
+    path('manage/image/<int:pk>/delete/', views.DeleteVenueImageView.as_view(), name='delete_venue_image'),
     
     # Admin actions
     path('admin/venue/<int:venue_id>/deactivate/', views.DeactivateVenueView.as_view(), name='admin_deactivate_venue'),

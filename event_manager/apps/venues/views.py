@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.urls import reverse_lazy, reverse
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
+from django.http import JsonResponse
 from .models import Venue, VenueImage, VenueBookingRequest
 from apps.events.models import Event
 
@@ -195,6 +196,17 @@ class CreateVenueView(VenueManagerRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.manager = self.request.user
         response = super().form_valid(form)
+        
+        # Save uploaded images
+        images = self.request.FILES.getlist('images')
+        for i, img in enumerate(images):
+            is_primary = (i == 0)
+            VenueImage.objects.create(
+                venue=self.object,
+                image=img,
+                is_primary=is_primary
+            )
+            
         messages.success(self.request, f'Venue "{form.instance.name}" created successfully!')
         return response
 
@@ -248,8 +260,38 @@ class EditVenueView(VenueManagerRequiredMixin, UpdateView):
         return reverse('venues:manage_venue', kwargs={'slug': self.object.slug})
     
     def form_valid(self, form):
+        response = super().form_valid(form)
+        
+        # Save uploaded images
+        images = self.request.FILES.getlist('images')
+        has_primary = self.object.images.filter(is_primary=True).exists()
+        for i, img in enumerate(images):
+            is_primary = not has_primary and (i == 0)
+            VenueImage.objects.create(
+                venue=self.object,
+                image=img,
+                is_primary=is_primary
+            )
+            
         messages.success(self.request, f'Venue "{form.instance.name}" has been updated successfully!')
-        return super().form_valid(form)
+        return response
+
+
+class DeleteVenueImageView(VenueManagerRequiredMixin, View):
+    """Delete a venue image"""
+    def post(self, request, pk):
+        image = get_object_or_404(VenueImage, pk=pk)
+        
+        # Check permissions: only venue manager (owner of the venue) or admin can delete
+        if not (request.user.is_admin_user or image.venue.manager == request.user):
+            return JsonResponse({'success': False, 'error': 'Permission denied.'}, status=403)
+            
+        try:
+            image.image.delete() # deletes the physical file
+            image.delete() # deletes the database record
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
 
 class DeleteVenueView(VenueManagerRequiredMixin, DeleteView):

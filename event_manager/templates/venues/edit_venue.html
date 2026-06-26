@@ -180,7 +180,7 @@
                                         <div class="card">
                                             <img src="{{ image.image.url }}" class="card-img-top" style="height: 150px; object-fit: cover;">
                                             <div class="card-body p-2 text-center">
-                                                <button type="button" class="btn btn-sm btn-danger delete-image-btn" data-image-id="{{ image.id }}">
+                                                <button type="button" class="btn btn-sm btn-danger delete-image-btn" data-image-id="{{ image.id }}" data-delete-url="{% url 'venues:delete_venue_image' image.id %}">
                                                     <i class="fas fa-trash"></i> Remove
                                                 </button>
                                             </div>
@@ -338,9 +338,28 @@ document.getElementById('hourly_rate').addEventListener('input', function(e) {
 document.querySelectorAll('.delete-image-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         const imageId = this.dataset.imageId;
+        const deleteUrl = this.dataset.deleteUrl;
+        const btnElement = this;
         if (confirm('Are you sure you want to remove this image?')) {
-            // In a real implementation, this would make an AJAX call to delete the image
-            this.closest('.col-md-3').remove();
+            fetch(deleteUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    btnElement.closest('.col-md-3').remove();
+                } else {
+                    alert('Error: ' + (data.error || 'Could not delete image'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the image.');
+            });
         }
     });
 });

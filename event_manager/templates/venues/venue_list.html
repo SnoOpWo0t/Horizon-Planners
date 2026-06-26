@@ -165,7 +165,11 @@
                     <div class="card venue-card">
                         <!-- Venue Image -->
                         <div class="venue-image position-relative">
-                            <i class="fas fa-building fa-4x text-muted"></i>
+                            {% if venue.images.exists %}
+                                <img src="{{ venue.images.first.image.url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ venue.name }}">
+                            {% else %}
+                                <i class="fas fa-building fa-4x text-muted"></i>
+                            {% endif %}
                             
                             <!-- Availability Badge -->
                             <div class="availability-badge">
