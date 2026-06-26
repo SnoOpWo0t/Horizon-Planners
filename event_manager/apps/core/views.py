@@ -73,6 +73,14 @@ class GetNotificationDetailView(LoginRequiredMixin, View):
             elif notification.notification_type in ['venue_deactivated', 'venue_deleted']:
                 if notification.venue:
                     redirect_url = f'/venues/manage/{notification.venue.slug}/'
+            elif notification.notification_type in ['new_comment', 'comment_reply']:
+                if notification.event:
+                    redirect_url = f'/reviews/event/{notification.event.id}/comments/'
+            elif notification.notification_type == 'new_review':
+                if notification.event:
+                    redirect_url = f'/reviews/event/{notification.event.id}/all-reviews/'
+                elif notification.venue:
+                    redirect_url = f'/reviews/venue/{notification.venue.id}/all-reviews/'
             
             # Mark as read
             notification.mark_as_read()

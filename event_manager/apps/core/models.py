@@ -20,6 +20,9 @@ class Notification(TimeStampedModel):
         EVENT_DELETED = 'event_deleted', 'Event Deleted'
         VENUE_DEACTIVATED = 'venue_deactivated', 'Venue Deactivated'
         VENUE_DELETED = 'venue_deleted', 'Venue Deleted'
+        NEW_COMMENT = 'new_comment', 'New Comment'
+        COMMENT_REPLY = 'comment_reply', 'Comment Reply'
+        NEW_REVIEW = 'new_review', 'New Review'
         OTHER = 'other', 'Other'
     
     class ActionReason(models.TextChoices):
@@ -74,6 +77,13 @@ class Notification(TimeStampedModel):
         null=True,
         blank=True,
         related_name='admin_notifications'
+    )
+    comment = models.ForeignKey(
+        'reviews.Comment',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='notifications'
     )
     
     # Status
