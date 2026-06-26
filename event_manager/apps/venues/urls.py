@@ -6,6 +6,7 @@ app_name = 'venues'
 urlpatterns = [
     # Venue browsing
     path('', views.VenueListView.as_view(), name='venue_list'),
+    path('showcase/', views.VenueShowcaseView.as_view(), name='venue_showcase'),
     path('venue/<slug:slug>/', views.VenueDetailView.as_view(), name='venue_detail'),
     
     # Venue management (for venue managers)

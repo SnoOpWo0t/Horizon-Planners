@@ -54,6 +54,9 @@
                     <p class="text-muted mb-0">Browse and manage event venues</p>
                 </div>
                 <div>
+                    <a href="{% url 'venues:venue_showcase' %}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-star me-2"></i>Venue Showcase
+                    </a>
                     {% if user.is_authenticated and user.is_venue_manager or user.is_admin_user %}
                         <a href="{% url 'venues:create_venue' %}" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>Add New Venue
@@ -71,7 +74,7 @@
                 <div class="d-flex align-items-center justify-content-center">
                     <i class="fas fa-building text-primary fa-2x me-3"></i>
                     <div>
-                        <h4 class="mb-0">{{ venues|length }}</h4>
+                        <h4 class="mb-0">{{ total_venue_count|default:venues|length }}</h4>
                         <small class="text-muted">Total Venues</small>
                     </div>
                 </div>
@@ -80,7 +83,7 @@
                 <div class="d-flex align-items-center justify-content-center">
                     <i class="fas fa-check-circle text-success fa-2x me-3"></i>
                     <div>
-                        <h4 class="mb-0">{{ venues|length }}</h4>
+                        <h4 class="mb-0">{{ active_venue_count|default:total_venue_count|default:venues|length }}</h4>
                         <small class="text-muted">Active Venues</small>
                     </div>
                 </div>
@@ -330,50 +333,10 @@
     </div>
 
     <!-- Pagination -->
-    {% if is_paginated %}
-        <div class="row mt-5">
+    {% if page_obj %}
+        <div class="row mt-4 mb-4">
             <div class="col-12">
-                <nav aria-label="Venues pagination">
-                    <ul class="pagination justify-content-center">
-                        {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page=1{% if current_search %}&search={{ current_search }}{% endif %}{% if current_city %}&city={{ current_city }}{% endif %}{% if current_min_capacity %}&min_capacity={{ current_min_capacity }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" aria-label="First">
-                                    <i class="fas fa-angle-double-left"></i>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_city %}&city={{ current_city }}{% endif %}{% if current_min_capacity %}&min_capacity={{ current_min_capacity }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" aria-label="Previous">
-                                    <i class="fas fa-angle-left"></i>
-                                </a>
-                            </li>
-                        {% endif %}
-
-                        {% for i in paginator.page_range %}
-                            {% if page_obj.number == i %}
-                                <li class="page-item active" aria-current="page">
-                                    <span class="page-link">{{ i }}</span>
-                                </li>
-                            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ i }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_city %}&city={{ current_city }}{% endif %}{% if current_min_capacity %}&min_capacity={{ current_min_capacity }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">{{ i }}</a>
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-
-                        {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_city %}&city={{ current_city }}{% endif %}{% if current_min_capacity %}&min_capacity={{ current_min_capacity }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" aria-label="Next">
-                                    <i class="fas fa-angle-right"></i>
-                                </a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ paginator.num_pages }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_city %}&city={{ current_city }}{% endif %}{% if current_min_capacity %}&min_capacity={{ current_min_capacity }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" aria-label="Last">
-                                    <i class="fas fa-angle-double-right"></i>
-                                </a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </nav>
+                {% include 'includes/pagination.html' with page_obj=page_obj extra_query=pagination_query label='Venues pagination' %}
             </div>
         </div>
     {% endif %}

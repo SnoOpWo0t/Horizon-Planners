@@ -97,8 +97,13 @@
                 </a>
             </li>
             <li class="sidebar-item">
+                <a href="{% url 'venues:venue_showcase' %}" class="sidebar-link">
+                    <i class="fas fa-city me-2"></i>Venue Showcase
+                </a>
+            </li>
+            <li class="sidebar-item">
                 <a href="{% url 'events:event_showcase' %}" class="sidebar-link">
-                    <i class="fas fa-star me-2"></i>Showcase
+                    <i class="fas fa-star me-2"></i>Event Showcase
                 </a>
             </li>
             <li class="sidebar-item">
@@ -257,8 +262,13 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'venues:venue_showcase' %}">
+                            <i class="fas fa-city me-1"></i>Venue Showcase
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'events:event_showcase' %}">
-                            <i class="fas fa-star me-1"></i>Showcase
+                            <i class="fas fa-star me-1"></i>Event Showcase
                         </a>
                     </li>
                     
@@ -456,8 +466,13 @@
                             </a>
                         </li>
                         <li class="mb-2">
+                            <a href="{% url 'venues:venue_showcase' %}" class="text-light text-decoration-none">
+                                <i class="fas fa-city me-2"></i>Venue Showcase
+                            </a>
+                        </li>
+                        <li class="mb-2">
                             <a href="{% url 'events:event_showcase' %}" class="text-light text-decoration-none">
-                                <i class="fas fa-star me-2"></i>Showcase
+                                <i class="fas fa-star me-2"></i>Event Showcase
                             </a>
                         </li>
                     </ul>

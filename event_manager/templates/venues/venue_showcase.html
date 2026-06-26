@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Venue Showcase - Horizon Planner{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/venues.css' %}">
+<style>
+    :root {
+        --showcase-navy: #0f172a;
+        --showcase-slate: #1e293b;
+        --showcase-teal: #0d9488;
+        --showcase-cyan: #06b6d4;
+        --showcase-gold: #f59e0b;
+        --showcase-text: #334155;
+    }
+
+    .showcase-page {
+        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 40%, #ffffff 100%);
+        overflow-x: hidden;
+    }
+
+    .showcase-hero {
+        position: relative;
+        padding: 5rem 0 4rem;
+        background: radial-gradient(circle at 20% 20%, rgba(13, 148, 136, 0.24), transparent 42%),
+                    radial-gradient(circle at 80% 0%, rgba(6, 182, 212, 0.2), transparent 36%),
+                    linear-gradient(135deg, var(--showcase-navy), var(--showcase-slate));
+        color: #fff;
+    }
+
+    .showcase-hero h1 {
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        font-size: clamp(2rem, 5vw, 3.2rem);
+    }
+
+    .showcase-section {
+        padding: 3.5rem 0 1.5rem;
+    }
+
+    .showcase-section h2 {
+        font-weight: 800;
+        color: var(--showcase-navy);
+    }
+
+    .section-note {
+        color: #475569;
+        margin-bottom: 1.8rem;
+    }
+
+    .metric-card {
+        border: none;
+        border-radius: 18px;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+    }
+
+    .metric-card .value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--showcase-navy);
+    }
+
+    .venue-showcase-card {
+        height: 100%;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .venue-showcase-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 28px rgba(15, 23, 42, 0.12);
+    }
+
+    .venue-showcase-media {
+        height: 190px;
+        background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748b;
+        font-size: 2.4rem;
+    }
+
+    .venue-showcase-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .pill {
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.2rem 0.7rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .pill.active {
+        background: rgba(13, 148, 136, 0.12);
+        color: #0f766e;
+    }
+
+    .pill.capacity {
+        background: rgba(245, 158, 11, 0.16);
+        color: #b45309;
+    }
+
+    .pill.new {
+        background: rgba(6, 182, 212, 0.14);
+        color: #0e7490;
+    }
+
+    .meta-line {
+        color: #64748b;
+        font-size: 0.9rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .empty-card {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        border: 1px dashed #cbd5e1;
+        border-radius: 16px;
+        color: #64748b;
+        background: #fff;
+    }
+
+    .metrics-wrap {
+        margin-top: -2rem;
+        position: relative;
+        z-index: 2;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="showcase-page">
+    <section class="showcase-hero">
+        <div class="container">
+            <h1>Venue Showcase</h1>
+            <p class="mt-3 mb-0 lead">
+                Discover premium spaces for every occasion — from intimate gatherings to grand-scale events across our platform.
+            </p>
+        </div>
+    </section>
+
+    <div class="container metrics-wrap pb-2">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="card metric-card h-100">
+                    <div class="card-body">
+                        <p class="mb-1 text-muted">Total Venues</p>
+                        <div class="value">{{ total_venues }}</div>
+                        <p class="mb-0 text-muted">Available on Horizon-Planners</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card metric-card h-100">
+                    <div class="card-body">
+                        <p class="mb-1 text-muted">Cities Covered</p>
+                        <div class="value">{{ total_cities }}</div>
+                        <p class="mb-0 text-muted">Locations to host your event</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card metric-card h-100">
+                    <div class="card-body">
+                        <p class="mb-1 text-muted">Combined Capacity</p>
+                        <div class="value">{{ total_capacity }}</div>
+                        <p class="mb-0 text-muted">Total guest capacity across venues</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="showcase-section">
+        <div class="container">
+            <h2><i class="fas fa-building me-2 text-info"></i>All Available Venues</h2>
+            <p class="section-note">Browse every active venue on the platform — 15 venues per page.</p>
+
+            <div class="row g-4">
+                {% for venue in active_venues %}
+                    <div class="col-lg-4 col-md-6">
+                        <article class="venue-showcase-card">
+                            <div class="venue-showcase-media">
+                                {% if venue.images.exists %}
+                                    <img src="{{ venue.images.first.image.url }}" alt="{{ venue.name }}">
+                                {% else %}
+                                    <i class="fas fa-building"></i>
+                                {% endif %}
+                            </div>
+                            <div class="p-3 p-lg-4">
+                                <span class="pill active mb-2"><i class="fas fa-circle"></i>Available</span>
+                                <h5 class="mb-2">{{ venue.name }}</h5>
+                                <p class="text-muted mb-3">{{ venue.description|truncatewords:18 }}</p>
+                                <p class="meta-line"><i class="fas fa-location-dot"></i> {{ venue.city }}, {{ venue.state }}</p>
+                                <p class="meta-line"><i class="fas fa-users"></i> Capacity: {{ venue.capacity }}</p>
+                                <p class="meta-line"><i class="fas fa-dollar-sign"></i> From ${{ venue.hourly_rate }}/hr</p>
+                                <div class="d-flex gap-2 mt-3">
+                                    <a href="{% url 'venues:venue_detail' venue.slug %}" class="btn btn-outline-primary btn-sm flex-grow-1">View Details</a>
+                                    {% if venue.is_active %}
+                                        <a href="{% url 'venues:book_venue' venue.slug %}" class="btn btn-success btn-sm">Book</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="empty-card">
+                            <i class="fas fa-building fa-2x mb-3"></i>
+                            <h5 class="mb-2">No Venues Yet</h5>
+                            <p class="mb-0">Venues will appear here once they are added to the platform.</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% include 'includes/pagination.html' with page_obj=active_venues page_param='venues_page' extra_query=venues_pagination_query label='Available venues pagination' %}
+        </div>
+    </section>
+
+    <section class="showcase-section">
+        <div class="container">
+            <h2><i class="fas fa-users me-2 text-warning"></i>Largest Capacity Venues</h2>
+            <p class="section-note">High-capacity spaces ideal for conferences, galas, and large gatherings.</p>
+
+            <div class="row g-4">
+                {% for venue in capacity_venues %}
+                    <div class="col-lg-4 col-md-6">
+                        <article class="venue-showcase-card">
+                            <div class="venue-showcase-media">
+                                {% if venue.images.exists %}
+                                    <img src="{{ venue.images.first.image.url }}" alt="{{ venue.name }}">
+                                {% else %}
+                                    <i class="fas fa-landmark"></i>
+                                {% endif %}
+                            </div>
+                            <div class="p-3 p-lg-4">
+                                <span class="pill capacity mb-2"><i class="fas fa-users"></i>{{ venue.capacity }} guests</span>
+                                <h5 class="mb-2">{{ venue.name }}</h5>
+                                <p class="meta-line"><i class="fas fa-location-dot"></i> {{ venue.address|truncatewords:8 }}</p>
+                                <p class="meta-line"><i class="fas fa-user-tie"></i> {{ venue.manager.get_full_name|default:venue.manager.username }}</p>
+                                <a href="{% url 'venues:venue_detail' venue.slug %}" class="btn btn-outline-primary btn-sm mt-2">View Details</a>
+                            </div>
+                        </article>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="empty-card">
+                            <p class="mb-0">No capacity venues to display yet.</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% include 'includes/pagination.html' with page_obj=capacity_venues page_param='capacity_page' extra_query=capacity_pagination_query label='Capacity venues pagination' %}
+        </div>
+    </section>
+
+    <section class="showcase-section pb-5">
+        <div class="container">
+            <h2><i class="fas fa-sparkles me-2 text-info"></i>Newly Added Venues</h2>
+            <p class="section-note">The latest venues recently listed on Horizon-Planners.</p>
+
+            <div class="row g-4">
+                {% for venue in newest_venues %}
+                    <div class="col-lg-4 col-md-6">
+                        <article class="venue-showcase-card">
+                            <div class="venue-showcase-media">
+                                {% if venue.images.exists %}
+                                    <img src="{{ venue.images.first.image.url }}" alt="{{ venue.name }}">
+                                {% else %}
+                                    <i class="fas fa-star"></i>
+                                {% endif %}
+                            </div>
+                            <div class="p-3 p-lg-4">
+                                <span class="pill new mb-2"><i class="fas fa-plus"></i>New</span>
+                                <h5 class="mb-2">{{ venue.name }}</h5>
+                                <p class="text-muted mb-3">{{ venue.description|truncatewords:16 }}</p>
+                                <p class="meta-line"><i class="fas fa-calendar"></i> Added {{ venue.created_at|date:"M d, Y" }}</p>
+                                <p class="meta-line"><i class="fas fa-map-marker-alt"></i> {{ venue.city }}</p>
+                                <a href="{% url 'venues:venue_detail' venue.slug %}" class="btn btn-outline-primary btn-sm mt-2">View Details</a>
+                            </div>
+                        </article>
+                    </div>
+                {% empty %}
+                    <div class="col-12">
+                        <div class="empty-card">
+                            <p class="mb-0">No new venues to display yet.</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% include 'includes/pagination.html' with page_obj=newest_venues page_param='newest_page' extra_query=newest_pagination_query label='New venues pagination' %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.pagination-bar .page-link[href]').forEach(function (link) {
+        link.addEventListener('click', function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+</script>
+{% endblock %}

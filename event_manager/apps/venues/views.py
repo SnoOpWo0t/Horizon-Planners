@@ -6,6 +6,7 @@ from django.urls import reverse_lazy, reverse
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
 from django.http import JsonResponse
+from apps.core.pagination import CONTENT_CARDS_PER_PAGE, build_query_string, paginate_queryset
 from .models import Venue, VenueImage, VenueBookingRequest
 from apps.events.models import Event
 
@@ -15,7 +16,7 @@ class VenueListView(ListView):
     model = Venue
     template_name = 'venues/venue_list.html'
     context_object_name = 'venues'
-    paginate_by = 12
+    paginate_by = CONTENT_CARDS_PER_PAGE
     
     def get_queryset(self):
         # Show all venues if user is admin, only active ones otherwise
@@ -73,7 +74,48 @@ class VenueListView(ListView):
         context['current_min_capacity'] = self.request.GET.get('min_capacity', '')
         context['current_city'] = self.request.GET.get('city', '')
         context['current_sort'] = self.request.GET.get('sort', 'name')
+        context['pagination_query'] = build_query_string(self.request, ['page'])
+
+        queryset = self.get_queryset()
+        context['total_venue_count'] = queryset.count()
+        context['active_venue_count'] = queryset.filter(is_active=True).count()
         
+        return context
+
+
+class VenueShowcaseView(TemplateView):
+    """Showcase page for browsing venues with pagination"""
+    template_name = 'venues/venue_showcase.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        is_admin = self.request.user.is_authenticated and self.request.user.is_admin_user
+
+        active_qs = Venue.objects.filter(is_active=True) if not is_admin else Venue.objects.all()
+        active_qs = active_qs.select_related('manager').prefetch_related('images', 'events').order_by('name')
+
+        capacity_qs = active_qs.order_by('-capacity')
+        newest_qs = active_qs.order_by('-created_at')
+
+        context['active_venues'] = paginate_queryset(
+            self.request, active_qs, page_param='venues_page'
+        )
+        context['capacity_venues'] = paginate_queryset(
+            self.request, capacity_qs, page_param='capacity_page'
+        )
+        context['newest_venues'] = paginate_queryset(
+            self.request, newest_qs, page_param='newest_page'
+        )
+
+        context['venues_pagination_query'] = build_query_string(self.request, ['venues_page'])
+        context['capacity_pagination_query'] = build_query_string(self.request, ['capacity_page'])
+        context['newest_pagination_query'] = build_query_string(self.request, ['newest_page'])
+
+        all_venues = Venue.objects.all() if is_admin else Venue.objects.filter(is_active=True)
+        context['total_venues'] = all_venues.count()
+        context['total_cities'] = all_venues.values('city').distinct().count()
+        context['total_capacity'] = all_venues.aggregate(total=Sum('capacity'))['total'] or 0
+
         return context
 
 

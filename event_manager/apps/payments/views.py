@@ -3,6 +3,7 @@ from django.views.generic import TemplateView, ListView, View
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.utils import timezone
+from apps.core.pagination import CONTENT_CARDS_PER_PAGE, build_query_string
 from .models import Order, Payment
 from apps.events.models import Ticket, Event
 from apps.venues.models import VenueBookingRequest
@@ -21,7 +22,7 @@ class ManagerOrdersView(ManagerRequiredMixin, ListView):
     """View all orders for manager's events"""
     template_name = 'payments/manager_orders.html'
     context_object_name = 'orders'
-    paginate_by = 20
+    paginate_by = CONTENT_CARDS_PER_PAGE
     
     def get_queryset(self):
         user = self.request.user
@@ -61,6 +62,7 @@ class ManagerOrdersView(ManagerRequiredMixin, ListView):
             )
         
         context['current_status'] = self.request.GET.get('status', 'all')
+        context['pagination_query'] = build_query_string(self.request, ['page'])
         
         return context
 
@@ -311,21 +313,21 @@ class DownloadTicketView(LoginRequiredMixin, TemplateView):
         
         return context
 
-class OrderHistoryView(LoginRequiredMixin, TemplateView):
+class OrderHistoryView(LoginRequiredMixin, ListView):
     template_name = 'payments/order_history.html'
-    
+    context_object_name = 'orders'
+    paginate_by = CONTENT_CARDS_PER_PAGE
+
+    def get_queryset(self):
+        return Order.objects.filter(
+            user=self.request.user
+        ).select_related('event', 'event__venue', 'event__category', 'payment').order_by('-created_at')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user = self.request.user
-        
-        # Get event orders
-        context['orders'] = Order.objects.filter(user=user).order_by('-created_at')
-        
-        # Get venue bookings
         context['venue_bookings'] = VenueBookingRequest.objects.filter(
-            requester=user
+            requester=self.request.user
         ).order_by('-created_at')
-        
         return context
 
 class OrderDetailView(LoginRequiredMixin, TemplateView):

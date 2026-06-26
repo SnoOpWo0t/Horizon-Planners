@@ -4,6 +4,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import CreateView, DetailView, UpdateView, ListView, View
+from apps.core.pagination import CONTENT_CARDS_PER_PAGE
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -140,7 +141,7 @@ class RoleRequestListView(AdminRequiredMixin, ListView):
     model = RoleUpgradeRequest
     template_name = 'users/role_requests.html'
     context_object_name = 'requests'
-    paginate_by = 20
+    paginate_by = CONTENT_CARDS_PER_PAGE
     
     def get_queryset(self):
         return RoleUpgradeRequest.objects.all().order_by('-created_at')

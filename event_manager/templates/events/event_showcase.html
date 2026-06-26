@@ -369,6 +369,8 @@
                     </div>
                 {% endfor %}
             </div>
+
+            {% include 'includes/pagination.html' with page_obj=active_events page_param='active_page' extra_query=active_pagination_query label='Active events pagination' %}
         </div>
     </section>
 
@@ -406,6 +408,8 @@
                     </div>
                 {% endfor %}
             </div>
+
+            {% include 'includes/pagination.html' with page_obj=recently_done_events page_param='recent_page' extra_query=recent_pagination_query label='Recently done events pagination' %}
         </div>
     </section>
 
@@ -450,6 +454,8 @@
                     </div>
                 {% endfor %}
             </div>
+
+            {% include 'includes/pagination.html' with page_obj=special_bookmarked_events page_param='featured_page' extra_query=featured_pagination_query label='Featured events pagination' %}
         </div>
     </section>
 </div>

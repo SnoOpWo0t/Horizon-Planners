@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.db.models import Q, Count, Sum, Avg
 from django.utils import timezone
+from apps.core.pagination import CONTENT_CARDS_PER_PAGE, build_query_string, paginate_queryset
 from .models import Event, Category, Ticket
 from .forms import EventForm, BookTicketForm
 from apps.venues.models import Venue
@@ -15,7 +16,7 @@ class EventListView(ListView):
     model = Event
     template_name = 'events/event_list.html'
     context_object_name = 'events'
-    paginate_by = 12
+    paginate_by = CONTENT_CARDS_PER_PAGE
     
     def get_queryset(self):
         queryset = Event.objects.filter(status='published').select_related('venue', 'category')
@@ -47,6 +48,7 @@ class EventListView(ListView):
         context['categories'] = Category.objects.all()
         context['venues'] = Venue.objects.filter(is_active=True).order_by('name')
         context['search_query'] = self.request.GET.get('search', '')
+        context['pagination_query'] = build_query_string(self.request, ['page'])
         # Get featured events separately for potential featured section
         context['featured_events'] = Event.objects.filter(
             status='published', 
@@ -294,7 +296,7 @@ class CategoryEventListView(ListView):
     model = Event
     template_name = 'events/category_events.html'
     context_object_name = 'events'
-    paginate_by = 12
+    paginate_by = CONTENT_CARDS_PER_PAGE
     
     def get_queryset(self):
         category_id = self.kwargs.get('pk')
@@ -379,7 +381,7 @@ class CategoryListView(HorizonPlannerRequiredMixin, ListView):
     model = Category
     template_name = 'events/category_list.html'
     context_object_name = 'categories'
-    paginate_by = 20
+    paginate_by = CONTENT_CARDS_PER_PAGE
 
 
 class CreateCategoryView(HorizonPlannerRequiredMixin, CreateView):
@@ -454,20 +456,36 @@ class EventShowcaseView(TemplateView):
             (Q(event_date__lt=today) & ~Q(status=Event.Status.CANCELLED))
         )
 
-        context['active_events'] = Event.objects.filter(
-            status=Event.Status.PUBLISHED,
-            event_date__gte=today
-        ).select_related('venue', 'category', 'manager').order_by('event_date', 'start_time')[:12]
+        context['active_events'] = paginate_queryset(
+            self.request,
+            Event.objects.filter(
+                status=Event.Status.PUBLISHED,
+                event_date__gte=today
+            ).select_related('venue', 'category', 'manager').order_by('event_date', 'start_time'),
+            page_param='active_page',
+        )
 
-        context['recently_done_events'] = Event.objects.filter(
-            completed_filter
-        ).select_related('venue', 'category', 'manager').order_by('-event_date', '-start_time')[:8]
+        context['recently_done_events'] = paginate_queryset(
+            self.request,
+            Event.objects.filter(
+                completed_filter
+            ).select_related('venue', 'category', 'manager').order_by('-event_date', '-start_time'),
+            page_param='recent_page',
+        )
 
-        context['special_bookmarked_events'] = Event.objects.filter(
-            is_featured=True
-        ).exclude(
-            status=Event.Status.DRAFT
-        ).select_related('venue', 'category', 'manager').order_by('-event_date', 'start_time')[:6]
+        context['special_bookmarked_events'] = paginate_queryset(
+            self.request,
+            Event.objects.filter(
+                is_featured=True
+            ).exclude(
+                status=Event.Status.DRAFT
+            ).select_related('venue', 'category', 'manager').order_by('-event_date', 'start_time'),
+            page_param='featured_page',
+        )
+
+        context['active_pagination_query'] = build_query_string(self.request, ['active_page'])
+        context['recent_pagination_query'] = build_query_string(self.request, ['recent_page'])
+        context['featured_pagination_query'] = build_query_string(self.request, ['featured_page'])
 
         context['total_events_done'] = Event.objects.filter(completed_filter).count()
         context['total_active_events'] = Event.objects.filter(

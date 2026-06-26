@@ -141,6 +141,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Card grids across the site show this many items per page
+CONTENT_CARDS_PER_PAGE = 15
+
 # Custom User Model
 AUTH_USER_MODEL = 'users.User'
 

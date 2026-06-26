@@ -157,6 +157,8 @@
                         </div>
                     {% endfor %}
                 </div>
+
+                {% include 'includes/pagination.html' with page_obj=page_obj label='Order history pagination' %}
             {% else %}
                 <!-- No Orders -->
                 <div class="card p-5 text-center">

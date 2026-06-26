@@ -820,6 +820,96 @@ html.dark-mode .pagination .page-link:hover {
     color: #fff;
 }
 
+/* Professional pagination bar */
+.pagination-bar {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.pagination-pro {
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.pagination-pro .page-item .page-link {
+    border-radius: 0.5rem;
+    min-width: 2.5rem;
+    text-align: center;
+    font-weight: 500;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    padding: 0.5rem 0.85rem;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.pagination-pro .page-item.page-nav .page-link {
+    min-width: auto;
+    padding-inline: 1rem;
+}
+
+.pagination-pro .page-item.page-number .page-link {
+    padding-inline: 0.85rem;
+}
+
+.pagination-pro .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 0.125rem 0.35rem rgba(13, 110, 253, 0.35);
+}
+
+.pagination-pro .page-item:not(.disabled):not(.active) .page-link:hover {
+    background-color: #e9f2ff;
+    border-color: #b6d4fe;
+    color: #0d6efd;
+}
+
+.pagination-pro .page-item.disabled .page-link {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+}
+
+.pagination-pro .page-item.page-ellipsis .page-link {
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    min-width: auto;
+    padding-inline: 0.35rem;
+}
+
+.pagination-summary {
+    font-size: 0.9rem;
+    letter-spacing: 0.01em;
+}
+
+html.dark-mode .pagination-bar {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark-mode .pagination-pro .page-item.disabled .page-link {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #666;
+}
+
+html.dark-mode .pagination-pro .page-item:not(.disabled):not(.active) .page-link:hover {
+    background-color: #333;
+    border-color: #0d6efd;
+    color: #b3d9ff;
+}
+
+html.dark-mode .pagination-pro .page-item.page-ellipsis .page-link {
+    color: #888;
+}
+
+html.dark-mode .pagination-summary {
+    color: #aaa !important;
+}
+
 /* About, Contact, Policy, Venue, Showcase page custom class overrides */
 html.dark-mode .team-section,
 html.dark-mode .faq-section,
