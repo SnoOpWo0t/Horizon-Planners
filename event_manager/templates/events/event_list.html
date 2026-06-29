@@ -4,51 +4,6 @@
 {% block title %}Home - Horizon Planner{% endblock %}
 
 {% block extra_css %}
-<style>
-    .hero-section {
-        background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(30,60,114,0.8) 100%), url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80') center/cover;
-        min-height: 50vh;
-        display: flex;
-        align-items: center;
-        border-bottom: 5px solid var(--bs-primary);
-    }
-    .hero-glass {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        padding: 3rem;
-        border-radius: 1rem;
-    }
-    html.dark-mode .hero-glass {
-        background: rgba(0, 0, 0, 0.4);
-    }
-    .section-title {
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        margin-bottom: 2rem;
-        position: relative;
-        display: inline-block;
-    }
-    .section-title::after {
-        content: '';
-        position: absolute;
-        width: 50%;
-        height: 3px;
-        background-color: var(--bs-primary);
-        bottom: -10px;
-        left: 25%;
-    }
-    .hover-lift {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .hover-lift:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-    }
-</style>
 {% endblock %}
 
 {% block content %}
@@ -59,23 +14,30 @@
             <div class="col-lg-8 text-center">
                 <div class="hero-glass">
                     <h1 class="display-3 fw-bold mb-4">Horizon Planner</h1>
-                    <p class="lead mb-4">Elevate your events. Discover extraordinary experiences, book seamlessly, and manage flawlessly.</p>
-                    
-                    <form method="get" action="{% url 'events:event_showcase' %}" class="row g-2 mt-4 justify-content-center">
-                        <div class="col-md-6">
-                            <input type="text" class="form-control form-control-lg" name="search" id="search" placeholder="Search events..." value="{{ search_query }}">
-                        </div>
-                        <div class="col-md-3">
-                            <button type="submit" class="btn btn-primary btn-lg w-100">
-                                <i class="fas fa-search me-1"></i>Search
-                            </button>
+                    <p class="lead mb-4">Elevate your events. Discover extraordinary experiences, book seamlessly, and
+                        manage flawlessly.</p>
+
+                    <form method="get" action="{% url 'events:event_showcase' %}" class="mt-5 justify-content-center d-flex">
+                        <div class="search-pill-container d-flex align-items-center rounded-pill overflow-hidden w-100" style="max-width: 650px; background: linear-gradient(90deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%); border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); box-shadow: 0 15px 35px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(255,255,255,0.2);">
+                            <div class="flex-grow-1 ps-4 pe-2 py-2">
+                                <input type="text" class="form-control border-0 shadow-none bg-transparent text-white" style="font-size: 1.15rem; font-weight: 500;" name="search" id="search" placeholder="Discover amazing events..." value="{{ search_query }}" onfocus="this.style.boxShadow='none'">
+                                <style>
+                                    #search::placeholder { color: rgba(255, 255, 255, 0.7); }
+                                    #search:focus { outline: none; background: transparent !important; color: #fff !important; }
+                                </style>
+                            </div>
+                            <div class="pe-2 py-2">
+                                <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 shadow" style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border: none; font-weight: 600; font-size: 1.1rem; letter-spacing: 0.5px;">
+                                    <i class="fas fa-search me-2"></i>Search
+                                </button>
+                            </div>
                         </div>
                     </form>
 
                     {% if not user.is_authenticated %}
-                        <div class="mt-4">
-                            <a href="{% url 'users:signup' %}" class="btn btn-outline-light btn-lg px-5">Join Now</a>
-                        </div>
+                    <div class="mt-4">
+                        <a href="{% url 'users:signup' %}" class="btn btn-outline-light btn-lg px-5">Join Now</a>
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -90,146 +52,151 @@
             <h2 class="section-title">Event Showcase</h2>
             <p class="text-muted mb-4">Explore our handpicked featured events</p>
         </div>
-        
+
         {% if featured_events %}
-            {% for event in featured_events %}
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card h-100 shadow-sm glass-card hover-lift">
-                        <div class="position-relative">
-                            {% if event.poster_image %}
-                                <img src="{{ event.poster_image.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 220px; object-fit: cover;">
-                            {% else %}
-                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 220px;">
-                                    <i class="fas fa-calendar-alt fa-4x text-muted"></i>
-                                </div>
-                            {% endif %}
-                            <span class="badge bg-warning position-absolute top-0 end-0 m-3 p-2 shadow">
-                                <i class="fas fa-star me-1"></i>Featured
-                            </span>
-                        </div>
-                        
-                        <div class="card-body">
-                            <h5 class="card-title fw-bold">{{ event.title }}</h5>
-                            <p class="card-text text-muted small">{{ event.description|truncatewords:15 }}</p>
-                            
-                            <hr>
-                            
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <small class="text-muted"><i class="fas fa-calendar-day me-2 text-primary"></i>{{ event.event_date|date:"M d, Y" }}</small>
-                                <small class="text-muted"><i class="fas fa-clock me-2 text-primary"></i>{{ event.start_time|time:"H:i" }}</small>
-                            </div>
-                            <div class="mb-3">
-                                <small class="text-muted"><i class="fas fa-map-marker-alt me-2 text-primary"></i>{{ event.venue.name }}</small>
-                            </div>
-                            
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="h5 mb-0 text-success fw-bold">${{ event.base_price }}</span>
-                                <span class="badge bg-primary-subtle text-primary border border-primary">{{ event.available_seats }} left</span>
-                            </div>
-                        </div>
-                        
-                        <div class="card-footer bg-transparent border-0 pb-3">
-                            <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-outline-primary w-100">
-                                View Details
-                            </a>
-                        </div>
+        {% for event in featured_events %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm glass-card hover-lift">
+                <div class="position-relative">
+                    {% if event.poster_image %}
+                    <img src="{{ event.poster_image.url }}" class="card-img-top" alt="{{ event.title }}"
+                        style="height: 220px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                        style="height: 220px;">
+                        <i class="fas fa-calendar-alt fa-4x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <span class="badge bg-warning position-absolute top-0 end-0 m-3 p-2 shadow">
+                        <i class="fas fa-star me-1"></i>Featured
+                    </span>
+                </div>
+
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">{{ event.title }}</h5>
+                    <p class="card-text text-muted small">{{ event.description|truncatewords:15 }}</p>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-muted"><i class="fas fa-calendar-day me-2 text-primary"></i>{{ event.event_date|date:"M d, Y" }}</small>
+                        <small class="text-muted"><i class="fas fa-clock me-2 text-primary"></i>{{ event.start_time|time:"H:i" }}</small>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted"><i class="fas fa-map-marker-alt me-2 text-primary"></i>{{ event.venue.name }}</small>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 mb-0 text-success fw-bold">${{ event.base_price }}</span>
+                        <span class="badge bg-primary-subtle text-primary border border-primary">{{ event.available_seats }} left</span>
                     </div>
                 </div>
-            {% endfor %}
+
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-outline-primary w-100">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
         {% else %}
-            {% for event in events|slice:":3" %}
-                <!-- Fallback to recent events if no featured events -->
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card h-100 shadow-sm glass-card hover-lift">
-                        <div class="position-relative">
-                            {% if event.poster_image %}
-                                <img src="{{ event.poster_image.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 220px; object-fit: cover;">
-                            {% else %}
-                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 220px;">
-                                    <i class="fas fa-calendar-alt fa-4x text-muted"></i>
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="card-body">
-                            <h5 class="card-title fw-bold">{{ event.title }}</h5>
-                            <p class="card-text text-muted small">{{ event.description|truncatewords:15 }}</p>
-                            <hr>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <small class="text-muted"><i class="fas fa-calendar-day me-2 text-primary"></i>{{ event.event_date|date:"M d, Y" }}</small>
-                            </div>
-                            <div class="mb-3">
-                                <small class="text-muted"><i class="fas fa-map-marker-alt me-2 text-primary"></i>{{ event.venue.name }}</small>
-                            </div>
-                            
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="h5 mb-0 text-success fw-bold">${{ event.base_price }}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="card-footer bg-transparent border-0 pb-3">
-                            <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-outline-primary w-100">
-                                View Details
-                            </a>
-                        </div>
+        {% for event in events|slice:":3" %}
+        <!-- Fallback to recent events if no featured events -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm glass-card hover-lift">
+                <div class="position-relative">
+                    {% if event.poster_image %}
+                    <img src="{{ event.poster_image.url }}" class="card-img-top" alt="{{ event.title }}"
+                        style="height: 220px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                        style="height: 220px;">
+                        <i class="fas fa-calendar-alt fa-4x text-muted"></i>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">{{ event.title }}</h5>
+                    <p class="card-text text-muted small">{{ event.description|truncatewords:15 }}</p>
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-muted"><i class="fas fa-calendar-day me-2 text-primary"></i>{{ event.event_date|date:"M d, Y" }}</small>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted"><i class="fas fa-map-marker-alt me-2 text-primary"></i>{{ event.venue.name }}</small>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 mb-0 text-success fw-bold">${{ event.base_price }}</span>
                     </div>
                 </div>
-            {% endfor %}
+
+                <div class="card-footer bg-transparent border-0 pb-3">
+                    <a href="{% url 'events:event_detail' event.pk %}" class="btn btn-outline-primary w-100">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
         {% endif %}
-        
+
         <div class="col-12 text-center mt-3">
             <a href="{% url 'events:event_showcase' %}" class="btn btn-primary px-4">Browse All Events</a>
         </div>
     </div>
-    
+
     <!-- Venue Showcase Section -->
     <div class="row mb-5 bg-light py-5 rounded-4 shadow-sm" style="background: rgba(0,0,0,0.02) !important;">
         <div class="col-12 text-center">
             <h2 class="section-title">Venue Showcase</h2>
             <p class="text-muted mb-4">Discover the perfect space for your next event</p>
         </div>
-        
+
         {% if venues %}
-            {% for venue in venues|slice:":3" %}
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="card h-100 shadow-sm glass-card border-0 hover-lift">
-                        {% if venue.main_image %}
-                            <img src="{{ venue.main_image.url }}" class="card-img-top" alt="{{ venue.name }}" style="height: 220px; object-fit: cover; border-radius: calc(.375rem - 1px) calc(.375rem - 1px) 0 0;">
-                        {% else %}
-                            <div class="card-img-top bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center" style="height: 220px; border-radius: calc(.375rem - 1px) calc(.375rem - 1px) 0 0;">
-                                <i class="fas fa-building fa-4x text-muted"></i>
-                            </div>
-                        {% endif %}
-                        
-                        <div class="card-body text-center">
-                            <h5 class="card-title fw-bold mb-1">{{ venue.name }}</h5>
-                            <p class="text-muted small mb-3"><i class="fas fa-map-marker-alt text-danger me-1"></i>{{ venue.address|truncatechars:35 }}</p>
-                            
-                            <div class="d-flex justify-content-center gap-3 mb-3">
-                                <span class="badge bg-light text-dark border"><i class="fas fa-users me-1"></i>{{ venue.capacity }}</span>
-                                <span class="badge bg-light text-dark border"><i class="fas fa-dollar-sign me-1"></i>${{ venue.price_per_hour }}/hr</span>
-                            </div>
-                            
-                            <p class="card-text text-muted small">{{ venue.description|truncatewords:15 }}</p>
-                        </div>
-                        
-                        <div class="card-footer bg-transparent border-0 pb-3 text-center">
-                            <a href="{% url 'venues:venue_detail' venue.slug %}" class="btn btn-outline-dark rounded-pill px-4">
-                                Explore Venue
-                            </a>
-                        </div>
-                    </div>
+        {% for venue in venues|slice:":3" %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm glass-card border-0 hover-lift">
+                {% if venue.main_image %}
+                <img src="{{ venue.main_image.url }}" class="card-img-top" alt="{{ venue.name }}"
+                    style="height: 220px; object-fit: cover; border-radius: calc(.375rem - 1px) calc(.375rem - 1px) 0 0;">
+                {% else %}
+                <div class="card-img-top bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center"
+                    style="height: 220px; border-radius: calc(.375rem - 1px) calc(.375rem - 1px) 0 0;">
+                    <i class="fas fa-building fa-4x text-muted"></i>
                 </div>
-            {% endfor %}
-            <div class="col-12 text-center mt-3">
-                <a href="{% url 'venues:venue_list' %}" class="btn btn-outline-primary px-4">See All Venues</a>
+                {% endif %}
+
+                <div class="card-body text-center">
+                    <h5 class="card-title fw-bold mb-1">{{ venue.name }}</h5>
+                    <p class="text-muted small mb-3"><i class="fas fa-map-marker-alt text-danger me-1"></i>{{ venue.address|truncatechars:35 }}</p>
+
+                    <div class="d-flex justify-content-center gap-3 mb-3">
+                        <span class="badge bg-light text-dark border"><i class="fas fa-users me-1"></i>{{ venue.capacity }}</span>
+                        <span class="badge bg-light text-dark border"><i class="fas fa-dollar-sign me-1"></i>${{ venue.price_per_hour }}/hr</span>
+                    </div>
+
+                    <p class="card-text text-muted small">{{ venue.description|truncatewords:15 }}</p>
+                </div>
+
+                <div class="card-footer bg-transparent border-0 pb-3 text-center">
+                    <a href="{% url 'venues:venue_detail' venue.slug %}" class="btn btn-outline-dark rounded-pill px-4">
+                        Explore Venue
+                    </a>
+                </div>
             </div>
+        </div>
+        {% endfor %}
+        <div class="col-12 text-center mt-3">
+            <a href="{% url 'venues:venue_list' %}" class="btn btn-outline-primary px-4">See All Venues</a>
+        </div>
         {% else %}
-            <div class="col-12 text-center">
-                <p class="text-muted">No venues available at the moment.</p>
-            </div>
+        <div class="col-12 text-center">
+            <p class="text-muted">No venues available at the moment.</p>
+        </div>
         {% endif %}
     </div>
-
 </div>
 {% endblock %}
