@@ -50,7 +50,7 @@ class SignUpView(CreateView):
         password = form.cleaned_data.get('password1')
         user = authenticate(username=username, password=password)
         login(self.request, user)
-        messages.success(self.request, f'Welcome to EventEase, {username}!')
+        messages.success(self.request, f'Welcome to Horizon Planner, {username}!')
         return response
 
 

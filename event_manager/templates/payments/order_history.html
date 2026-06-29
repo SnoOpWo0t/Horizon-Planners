@@ -142,9 +142,9 @@
                                             <i class="fas fa-eye me-1"></i>View Full Details
                                         </a>
                                         {% if order.status == 'confirmed' %}
-                                            <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
-                                                <i class="fas fa-download me-1"></i>Download/Print
-                                            </button>
+                                            <a href="{% url 'payments:order_ticket' order.id %}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                                                <i class="fas fa-ticket-alt me-1"></i>View/Download Ticket
+                                            </a>
                                         {% endif %}
                                         {% if order.status == 'pending' %}
                                             <button class="btn btn-sm btn-outline-danger" onclick="cancelOrder({{ order.id }})">

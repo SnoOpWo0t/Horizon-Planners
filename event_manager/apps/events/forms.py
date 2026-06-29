@@ -35,12 +35,15 @@ class EventForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         # Only show active venues
-        self.fields['venue'].queryset = Venue.objects.filter(is_active=True)
-        
-        # If user is not admin, limit venue choices to ones they can book
         if user and not user.is_admin_user:
-            # For now, allow all venues - booking approval happens later
-            pass
+            # Show venues that the planner has an approved booking request for
+            self.fields['venue'].queryset = Venue.objects.filter(
+                is_active=True,
+                booking_requests__requester=user,
+                booking_requests__status='approved'
+            ).distinct()
+        else:
+            self.fields['venue'].queryset = Venue.objects.filter(is_active=True)
     
     def clean(self):
         cleaned_data = super().clean()

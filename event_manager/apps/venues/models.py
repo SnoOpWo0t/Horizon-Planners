@@ -63,6 +63,16 @@ class Venue(TimeStampedModel):
         return f"{self.name} - {self.city}, {self.state}"
     
     @property
+    def main_image(self):
+        primary = self.images.filter(is_primary=True).first()
+        if primary:
+            return primary.image
+        first = self.images.first()
+        if first:
+            return first.image
+        return None
+    
+    @property
     def average_rating(self):
         try:
             reviews = self.reviews.filter(status='approved')

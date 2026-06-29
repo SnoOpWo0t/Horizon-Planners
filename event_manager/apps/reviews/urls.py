@@ -4,6 +4,11 @@ from . import views
 app_name = 'reviews'
 
 urlpatterns = [
+    # View all pages
+    path('event/<int:event_id>/comments/', views.EventCommentsPageView.as_view(), name='event_comments'),
+    path('event/<int:event_id>/all-reviews/', views.EventAllReviewsView.as_view(), name='event_all_reviews'),
+    path('venue/<int:venue_id>/all-reviews/', views.VenueAllReviewsView.as_view(), name='venue_all_reviews'),
+    
     # Submit reviews and comments
     path('event/<int:event_id>/review/', views.CreateEventReviewView.as_view(), name='create_event_review'),
     path('venue/<int:venue_id>/review/', views.CreateVenueReviewView.as_view(), name='create_venue_review'),

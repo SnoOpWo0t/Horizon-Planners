@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Profile - EventEase{% endblock %}
+{% block title %}Profile - Horizon Planner{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -110,10 +110,10 @@
     <div class="profile-shell">
     <div class="row g-4">
         <div class="col-lg-4">
-            <div class="card profile-card">
+            <div class="card profile-card glass-card">
                 <div class="card-body text-center">
                     {% if profile_user.profile_picture %}
-                        <img src="{{ profile_user.profile_picture.url }}" class="rounded-circle profile-avatar mb-3" alt="Profile Picture">
+                        <img src="{{ profile_user.profile_picture.url }}" class="rounded-circle profile-avatar mb-3 border-primary" alt="Profile Picture">
                     {% else %}
                         <div class="profile-avatar-fallback mb-3">
                             <i class="fas fa-user fa-3x text-white"></i>
@@ -155,7 +155,7 @@
             
             <!-- Role Upgrade Section for Basic Users -->
             {% if profile_user.is_basic_user %}
-                <div class="card profile-card mt-3">
+                <div class="card profile-card glass-card mt-3">
                     <div class="card-body">
                         <h6 class="card-title"><i class="fas fa-arrow-up me-1"></i>Upgrade Your Role</h6>
                         <p class="card-text small">Want to become a Horizon Planner or Venue Manager?</p>
@@ -169,9 +169,9 @@
         
         <div class="col-lg-8">
             <!-- Profile Information -->
-            <div class="card profile-card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Profile Information</h5>
+            <div class="card profile-card glass-card mb-4">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2 text-primary"></i>Profile Information</h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -228,9 +228,9 @@
             </div>
             
             <!-- Quick Actions based on role -->
-            <div class="card profile-card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-rocket me-2"></i>Quick Actions</h5>
+            <div class="card profile-card glass-card">
+                <div class="card-header bg-transparent border-0 pt-4 pb-2">
+                    <h5 class="mb-0"><i class="fas fa-rocket me-2 text-primary"></i>Quick Actions</h5>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">

@@ -22,6 +22,7 @@ urlpatterns = [
     path('failed/<int:payment_id>/', views.PaymentFailedView.as_view(), name='payment_failed'),
     
     # Ticket management
+    path('order/<int:order_id>/ticket/', views.OrderTicketView.as_view(), name='order_ticket'),
     path('ticket/<str:ticket_number>/', views.TicketDetailView.as_view(), name='ticket_detail'),
     path('ticket/<str:ticket_number>/download/', views.DownloadTicketView.as_view(), name='download_ticket'),
     

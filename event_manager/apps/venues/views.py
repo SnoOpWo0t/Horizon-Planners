@@ -198,16 +198,28 @@ class VenueDetailView(DetailView):
         except Exception:
             total_reviews = 0
         
-        # Check if current user has booked this venue
-        user_has_booked = False
+        # Check if current user has booked this venue or can review it
+        can_review = False
+        already_reviewed = False
         if self.request.user.is_authenticated:
             try:
-                user_has_booked = venue.bookings.filter(
-                    user=self.request.user,
-                    status__in=['confirmed', 'completed']
+                has_booked = venue.booking_requests.filter(
+                    requester=self.request.user,
+                    status__in=['approved', 'completed']
+                ).exists()
+                
+                has_event_at_venue = Event.objects.filter(
+                    manager=self.request.user,
+                    venue=venue
+                ).exists()
+                
+                can_review = has_booked or has_event_at_venue
+                
+                already_reviewed = venue.reviews.filter(
+                    user=self.request.user
                 ).exists()
             except Exception:
-                user_has_booked = False
+                pass
         
         context.update({
             'upcoming_events': upcoming_events,
@@ -215,7 +227,8 @@ class VenueDetailView(DetailView):
             'recent_reviews': recent_reviews,
             'total_events': total_events,
             'total_reviews': total_reviews,
-            'user_has_booked': user_has_booked,
+            'can_review': can_review,
+            'already_reviewed': already_reviewed,
         })
         
         return context

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Write a Review - {{ venue.name }} | Horizon-Planners{% endblock %}
+
+{% block extra_css %}
+<style>
+    .review-form-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .star-rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        font-size: 2rem;
+    }
+    .star-rating input {
+        display: none;
+    }
+    .star-rating label {
+        color: #ddd;
+        cursor: pointer;
+        transition: color 0.2s;
+        margin-right: 0.2rem;
+    }
+    .star-rating label:before {
+        content: '\2605';
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+    }
+    .star-rating input:checked ~ label,
+    .star-rating label:hover,
+    .star-rating label:hover ~ label {
+        color: #ffc107;
+    }
+    .hero-bg {
+        background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero-bg">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'venues:venue_list' %}" class="text-white">Venues</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'venues:venue_detail' venue.slug %}" class="text-white">{{ venue.name }}</a></li>
+                <li class="breadcrumb-item active text-white" aria-current="page">Write Review</li>
+            </ol>
+        </nav>
+        <h2>Write a Review for {{ venue.name }}</h2>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="review-form-container">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                {% if not can_review and not review %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        You can only review venues you have booked or used for an event.
+                    </div>
+                    <a href="{% url 'venues:venue_detail' venue.slug %}" class="btn btn-primary">Return to Venue</a>
+                {% elif already_reviewed and not review %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        You have already reviewed this venue.
+                    </div>
+                    <a href="{% url 'venues:venue_detail' venue.slug %}" class="btn btn-primary">Return to Venue</a>
+                {% else %}
+                    <form method="post" action="{% if review %}{% url 'reviews:edit_review' review.pk %}{% else %}{% url 'reviews:create_venue_review' venue.pk %}{% endif %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4 text-center border-bottom pb-4">
+                            <h5 class="mb-3">How was your experience?</h5>
+                            <div class="star-rating mx-auto d-inline-block">
+                                <input type="radio" id="star5" name="rating" value="5" {% if review.rating == 5 %}checked{% endif %} required />
+                                <label for="star5" title="5 stars"></label>
+                                <input type="radio" id="star4" name="rating" value="4" {% if review.rating == 4 %}checked{% endif %} />
+                                <label for="star4" title="4 stars"></label>
+                                <input type="radio" id="star3" name="rating" value="3" {% if review.rating == 3 %}checked{% endif %} />
+                                <label for="star3" title="3 stars"></label>
+                                <input type="radio" id="star2" name="rating" value="2" {% if review.rating == 2 %}checked{% endif %} />
+                                <label for="star2" title="2 stars"></label>
+                                <input type="radio" id="star1" name="rating" value="1" {% if review.rating == 1 %}checked{% endif %} />
+                                <label for="star1" title="1 star"></label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="title" class="form-label fw-bold">Review Title</label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ review.title|default:'' }}" placeholder="Summarize your experience" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="content" class="form-label fw-bold">Detailed Review</label>
+                            <textarea class="form-control" id="content" name="content" rows="6" placeholder="Tell us more about what you liked or didn't like..." required>{{ review.content|default:'' }}</textarea>
+                            <div class="form-text">Share details about the facilities, service, or your event's success here.</div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'venues:venue_detail' venue.slug %}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                {% if review %}Update Review{% else %}Submit Review{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

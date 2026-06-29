@@ -1,53 +1,143 @@
 {% extends 'base.html' %}
 
-{% block title %}Login - EventEase{% endblock %}
+{% block title %}Login - Horizon Planner{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern Glassmorphism Setup */
+    body {
+        background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+        min-height: 100vh;
+    }
+    
+    .glass-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        color: white;
+    }
+    
+    .glass-input {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 12px;
+        color: white !important;
+        padding: 0.8rem 1.2rem;
+        transition: all 0.3s ease;
+    }
+    
+    .glass-input:focus {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.1) !important;
+        outline: none;
+    }
+    
+    .glass-input::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .form-label {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    
+    .glass-btn {
+        background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        padding: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .glass-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 114, 255, 0.4);
+        color: white;
+    }
+    
+    .auth-link {
+        color: #00c6ff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s;
+    }
+    
+    .auth-link:hover {
+        color: #0072ff;
+        text-decoration: underline;
+    }
+    
+    .alert-glass {
+        background: rgba(220, 53, 69, 0.2);
+        border: 1px solid rgba(220, 53, 69, 0.3);
+        color: #ff8787;
+        backdrop-filter: blur(8px);
+        border-radius: 12px;
+    }
+    
+    /* Hide the original generated inputs if they leak */
+    .form-group-hidden input {
+        display: none;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="text-center">
-                        <i class="fas fa-sign-in-alt me-2"></i>Login
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {{ form.non_field_errors }}
-                            </div>
-                        {% endif %}
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-                            {{ form.username }}
-                            {% if form.username.errors %}
-                                <div class="text-danger">{{ form.username.errors }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
-                            {{ form.password }}
-                            {% if form.password.errors %}
-                                <div class="text-danger">{{ form.password.errors }}</div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-sign-in-alt me-2"></i>Login
-                            </button>
-                        </div>
-                    </form>
-                    
-                    <div class="text-center mt-3">
-                        <p>Don't have an account? <a href="{% url 'users:signup' %}">Sign up here</a></p>
+<div class="container py-5">
+    <div class="row justify-content-center align-items-center min-vh-75">
+        <div class="col-md-6 col-lg-5">
+            <div class="glass-card animate__animated animate__fadeInUp">
+                <div class="text-center mb-4">
+                    <div class="d-inline-block p-3 rounded-circle mb-3" style="background: rgba(255,255,255,0.1);">
+                        <i class="fas fa-sign-in-alt fa-2x text-white"></i>
                     </div>
+                    <h2 class="fw-bold mb-1">Welcome Back</h2>
+                    <p class="text-white-50">Login to your Horizon Planner account</p>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-glass mb-4">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control glass-input" placeholder="Enter your username" required id="{{ form.username.id_for_label }}">
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control glass-input" placeholder="Enter your password" required id="{{ form.password.id_for_label }}">
+                        {% if form.password.errors %}
+                            <div class="text-danger small mt-1">{{ form.password.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid mt-5">
+                        <button type="submit" class="btn glass-btn">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <p class="text-white-50 mb-0">Don't have an account? <a href="{% url 'users:signup' %}" class="auth-link">Sign up here</a></p>
                 </div>
             </div>
         </div>

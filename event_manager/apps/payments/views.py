@@ -105,6 +105,18 @@ class ConfirmOrderView(ManagerRequiredMixin, View):
         order.save()
         order.payment.save()
         
+        # Notify the buyer
+        from apps.core.models import Notification
+        ticket_url = f"/payments/order/{order.id}/ticket/"
+        Notification.objects.create(
+            recipient=order.user,
+            notification_type=Notification.NotificationType.OTHER,
+            subject=f"Booking Accepted: {order.event.title}",
+            message=f"Your booking for '{order.event.title}' has been accepted! You can now download your ticket.",
+            event=order.event,
+            details={'action_url': ticket_url}
+        )
+        
         messages.success(request, f'Order {order.order_number} confirmed!')
         return redirect('payments:manage_order_detail', order_number=order.order_number)
 
@@ -187,6 +199,17 @@ class CheckoutView(LoginRequiredMixin, TemplateView):
             customer_name=request.user.get_full_name() or request.user.username,
             customer_email=request.user.email,
             customer_phone=getattr(request.user, 'phone', '')
+        )
+        
+        # Notify the Event Manager (Horizon Planner)
+        from apps.core.models import Notification
+        Notification.objects.create(
+            recipient=ticket.event.manager,
+            notification_type=Notification.NotificationType.NEW_BOOKING,
+            subject=f"New Ticket Booking: {ticket.event.title}",
+            message=f"{request.user.username} has booked {ticket.quantity} ticket(s) for your event '{ticket.event.title}'. Order #{order.order_number}",
+            event=ticket.event,
+            details={'order_id': order.id, 'order_number': order.order_number}
         )
         
         # Redirect to confirmation
@@ -355,4 +378,18 @@ class RefundRequestView(LoginRequiredMixin, TemplateView):
         context['payment'] = payment
         context['order'] = payment.order
         
+        return context
+
+class OrderTicketView(LoginRequiredMixin, TemplateView):
+    """Download or view ticket for a confirmed order"""
+    template_name = 'payments/order_ticket.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        order_id = kwargs.get('order_id')
+        order = get_object_or_404(Order, id=order_id, user=self.request.user)
+        
+        context['order'] = order
+        context['event'] = order.event
+        context['payment'] = order.payment
         return context

@@ -23,6 +23,7 @@ class Notification(TimeStampedModel):
         NEW_COMMENT = 'new_comment', 'New Comment'
         COMMENT_REPLY = 'comment_reply', 'Comment Reply'
         NEW_REVIEW = 'new_review', 'New Review'
+        NEW_BOOKING = 'new_booking', 'New Booking'
         OTHER = 'other', 'Other'
     
     class ActionReason(models.TextChoices):

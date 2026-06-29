@@ -1,4 +1,4 @@
-/* Custom styles for EventEase */
+/* Custom styles for Horizon Planner */
 
 :root {
     --primary-color: #007bff;
@@ -30,7 +30,8 @@ body.sidebar-open {
 
 .navbar {
     z-index: 1030 !important;
-    position: relative !important;
+    position: sticky !important;
+    top: 0;
 }
 
 .navbar .dropdown-menu {
@@ -116,13 +117,15 @@ body.sidebar-open {
 }
 
 /* Form Controls */
-.form-control, .form-select {
+.form-control,
+.form-select {
     border-radius: 8px;
     border: 1px solid #ced4da;
     transition: all 0.3s ease;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
@@ -186,7 +189,9 @@ footer {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Responsive adjustments */
@@ -194,7 +199,7 @@ footer {
     .hero-section .display-4 {
         font-size: 2rem;
     }
-    
+
     .card-body {
         padding: 1rem;
     }
@@ -662,18 +667,18 @@ html.dark-mode table {
     border-color: #444;
 }
 
-html.dark-mode .table-striped > tbody > tr:nth-of-type(odd) {
+html.dark-mode .table-striped>tbody>tr:nth-of-type(odd) {
     background-color: #2d2d2d;
 }
 
-html.dark-mode .table-hover > tbody > tr:hover {
+html.dark-mode .table-hover>tbody>tr:hover {
     background-color: #333;
     color: #e9ecef;
 }
 
 html.dark-mode .table-bordered,
-html.dark-mode .table-bordered > thead > tr > th,
-html.dark-mode .table-bordered > tbody > tr > td {
+html.dark-mode .table-bordered>thead>tr>th,
+html.dark-mode .table-bordered>tbody>tr>td {
     border-color: #444;
 }
 
@@ -771,9 +776,9 @@ html.dark-mode .btn-light:focus {
     color: #ffffff;
 }
 
-html.dark-mode .table-light > th,
-html.dark-mode .table-light > td,
-html.dark-mode .table > :not(caption) > * > * {
+html.dark-mode .table-light>th,
+html.dark-mode .table-light>td,
+html.dark-mode .table> :not(caption)>*>* {
     background-color: transparent;
     color: #e9ecef;
     border-color: #444;
@@ -940,9 +945,9 @@ html.dark-mode .purpose-card h3,
 html.dark-mode .team-member-info h4,
 html.dark-mode .team-member-info .description,
 html.dark-mode .contact-info-group h2,
-html.dark-mode .contact-info-group > p,
+html.dark-mode .contact-info-group>p,
 html.dark-mode .contact-form-wrapper h2,
-html.dark-mode .contact-form-wrapper > p,
+html.dark-mode .contact-form-wrapper>p,
 html.dark-mode .info-content h3,
 html.dark-mode .info-content p,
 html.dark-mode .faq-title h2,
@@ -1015,4 +1020,297 @@ body {
 
 .sidebar {
     transition: all 0.3s ease;
+}
+
+/* ------------------------------------ */
+/* Comments and Reviews Styling */
+/* ------------------------------------ */
+
+.comments-list .comment-item:last-child {
+    border-bottom: none !important;
+}
+
+.comment-item .avatar {
+    font-size: 1.2rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.comment-item p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.comments-list a.small.text-decoration-none {
+    color: var(--primary-color);
+}
+
+.comments-list a.small.text-decoration-none:hover {
+    text-decoration: underline !important;
+}
+
+.border-start.border-2 {
+    border-color: #e9ecef !important;
+}
+
+/* Dark mode for Comments & Reviews */
+html.dark-mode .comments-list .border-bottom {
+    border-color: #333 !important;
+}
+
+html.dark-mode .border-start.border-2 {
+    border-color: #444 !important;
+}
+
+html.dark-mode .comment-item .avatar {
+    background-color: #3a5b99 !important;
+}
+
+html.dark-mode .card.bg-light.border-0 {}
+
+.pagination-pro .page-item:not(.disabled):not(.active) .page-link:hover {
+    background-color: #e9f2ff;
+    border-color: #b6d4fe;
+    color: #0d6efd;
+}
+
+.pagination-pro .page-item.disabled .page-link {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+}
+
+.pagination-pro .page-item.page-ellipsis .page-link {
+    border: none;
+    background: transparent;
+    color: #6c757d;
+    min-width: auto;
+    padding-inline: 0.35rem;
+}
+
+.pagination-summary {
+    font-size: 0.9rem;
+    letter-spacing: 0.01em;
+}
+
+html.dark-mode .pagination-bar {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark-mode .pagination-pro .page-item.disabled .page-link {
+    background-color: #2a2a2a;
+    border-color: #444;
+    color: #666;
+}
+
+html.dark-mode .pagination-pro .page-item:not(.disabled):not(.active) .page-link:hover {
+    background-color: #333;
+    border-color: #0d6efd;
+    color: #b3d9ff;
+}
+
+html.dark-mode .pagination-pro .page-item.page-ellipsis .page-link {
+    color: #888;
+}
+
+html.dark-mode .pagination-summary {
+    color: #aaa !important;
+}
+
+/* About, Contact, Policy, Venue, Showcase page custom class overrides */
+html.dark-mode .team-section,
+html.dark-mode .faq-section,
+html.dark-mode .filter-section,
+html.dark-mode .feature-badge,
+html.dark-mode .info-item,
+html.dark-mode .policy-nav,
+html.dark-mode .policy-content,
+html.dark-mode .highlight-box,
+html.dark-mode .stats-card,
+html.dark-mode .chart-container,
+html.dark-mode .stats-bar,
+html.dark-mode .purpose-card,
+html.dark-mode .team-member,
+html.dark-mode .faq-item,
+html.dark-mode .faq-question,
+html.dark-mode .showcase-page,
+html.dark-mode .event-card,
+html.dark-mode .empty-card {
+    background: #222 !important;
+    color: #e9ecef !important;
+    border-color: #3f3f3f !important;
+}
+
+html.dark-mode .section-title h2,
+html.dark-mode .section-title p,
+html.dark-mode .purpose-card h3,
+html.dark-mode .team-member-info h4,
+html.dark-mode .team-member-info .description,
+html.dark-mode .contact-info-group h2,
+html.dark-mode .contact-info-group>p,
+html.dark-mode .contact-form-wrapper h2,
+html.dark-mode .contact-form-wrapper>p,
+html.dark-mode .info-content h3,
+html.dark-mode .info-content p,
+html.dark-mode .faq-title h2,
+html.dark-mode .faq-question h3,
+html.dark-mode .policy-nav h3,
+html.dark-mode .policy-section h2,
+html.dark-mode .policy-section h3,
+html.dark-mode .policy-section p,
+html.dark-mode .policy-section li,
+html.dark-mode .meta-line,
+html.dark-mode .section-note {
+    color: #d5dde8 !important;
+}
+
+html.dark-mode .info-item:hover,
+html.dark-mode .faq-question:hover,
+html.dark-mode .policy-nav a:hover {
+    background: #2d3440 !important;
+}
+
+html.dark-mode .policy-section {
+    border-bottom-color: #3a3a3a !important;
+}
+
+html.dark-mode .social-section {
+    border-top-color: #3a3a3a !important;
+}
+
+html.dark-mode .form-group label {
+    color: #d5dde8 !important;
+}
+
+html.dark-mode .form-group input,
+html.dark-mode .form-group textarea,
+html.dark-mode .form-group select {
+    background: #272727 !important;
+    border-color: #444 !important;
+    color: #e9ecef !important;
+}
+
+html.dark-mode .form-group input:focus,
+html.dark-mode .form-group textarea:focus,
+html.dark-mode .form-group select:focus {
+    background: #2e2e2e !important;
+    border-color: #5b8cff !important;
+    box-shadow: 0 0 0 0.2rem rgba(91, 140, 255, 0.2) !important;
+}
+
+html.dark-mode p[style*="color: #666"],
+html.dark-mode p[style*="color: #999"] {
+    color: #b6c2d1 !important;
+}
+
+/* Smooth transition for theme switching */
+html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar {
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.card {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.sidebar {
+    transition: all 0.3s ease;
+}
+
+/* ------------------------------------ */
+/* Comments and Reviews Styling */
+/* ------------------------------------ */
+
+.comments-list .comment-item:last-child {
+    border-bottom: none !important;
+}
+
+.comment-item .avatar {
+    font-size: 1.2rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.comment-item p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.comments-list a.small.text-decoration-none {
+    color: var(--primary-color);
+}
+
+.comments-list a.small.text-decoration-none:hover {
+    text-decoration: underline !important;
+}
+
+.border-start.border-2 {
+    border-color: #e9ecef !important;
+}
+
+/* Dark mode for Comments & Reviews */
+html.dark-mode .comments-list .border-bottom {
+    border-color: #333 !important;
+}
+
+html.dark-mode .border-start.border-2 {
+    border-color: #444 !important;
+}
+
+html.dark-mode .comment-item .avatar {
+    background-color: #3a5b99 !important;
+}
+
+html.dark-mode .card.bg-light.border-0 {
+    background-color: #2b3035 !important;
+}
+
+html.dark-mode .text-muted {
+    color: #a0aab5 !important;
+}
+
+html.dark-mode .alert-secondary {
+    background-color: #2b3035 !important;
+    border-color: #444 !important;
+    color: #d5dde8 !important;
+}
+
+/* ------------------------------------ */
+/* Glassmorphism & Modern UI */
+/* ------------------------------------ */
+
+.glass-navbar {
+    background: rgba(0, 123, 255, 0.85) !important;
+    /* Slightly transparent primary color */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    z-index: 1030;
+}
+
+html.dark-mode .glass-navbar {
+    background: rgba(33, 37, 41, 0.8) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+html.dark-mode .glass-card {
+    background: rgba(43, 48, 53, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }

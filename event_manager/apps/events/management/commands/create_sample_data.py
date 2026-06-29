@@ -7,7 +7,7 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = 'Create sample data for EventEase'
+    help = 'Create sample data for Horizon Planner'
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS('Creating sample data...'))

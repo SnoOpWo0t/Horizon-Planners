@@ -81,6 +81,10 @@ class GetNotificationDetailView(LoginRequiredMixin, View):
                     redirect_url = f'/reviews/event/{notification.event.id}/all-reviews/'
                 elif notification.venue:
                     redirect_url = f'/reviews/venue/{notification.venue.id}/all-reviews/'
+            elif notification.notification_type == 'new_booking':
+                order_number = notification.details.get('order_number')
+                if order_number:
+                    redirect_url = f'/payments/manager/order/{order_number}/'
             
             # Mark as read
             notification.mark_as_read()

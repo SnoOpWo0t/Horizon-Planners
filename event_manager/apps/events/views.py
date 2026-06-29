@@ -70,16 +70,41 @@ class EventDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         event = self.get_object()
         
-        # Get approved reviews and comments
-        context['reviews'] = event.reviews.filter(status='approved').order_by('-created_at')[:5]
-        context['comments'] = event.comments.filter(status='approved').order_by('-created_at')[:10]
+        # Reviews
+        approved_reviews = event.reviews.filter(status='approved')
+        context['reviews'] = approved_reviews.order_by('-created_at')[:5]
+        context['reviews_count'] = approved_reviews.count()
+        context['avg_rating'] = approved_reviews.aggregate(Avg('rating'))['rating__avg']
         
-        # Check if user can book tickets
+        # Threaded Comments (Top-level only, prefetched replies)
+        approved_comments = event.comments.filter(status='approved', parent__isnull=True)
+        context['comments'] = approved_comments.select_related('user').prefetch_related('replies__user').order_by('-is_pinned', '-created_at')[:10]
+        context['comments_count'] = event.comments.filter(status='approved').count()
+        
+        # User specific logic
         if self.request.user.is_authenticated:
+            # Check if user can book tickets or has a ticket
             context['user_has_ticket'] = event.orders.filter(
                 user=self.request.user,
                 payment__status='completed'
             ).exists()
+            
+            # Check if user can write a review (completed order)
+            context['has_completed_order'] = context['user_has_ticket']
+            
+            # Check if user already reviewed
+            context['already_reviewed'] = event.reviews.filter(
+                user=self.request.user
+            ).exists()
+            
+            # Get comment likes for current user
+            from apps.reviews.models import CommentLike
+            context['user_liked_ids'] = set(
+                CommentLike.objects.filter(
+                    user=self.request.user,
+                    comment__event=event
+                ).values_list('comment_id', flat=True)
+            )
         
         return context
 

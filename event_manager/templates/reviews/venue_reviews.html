@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% load static custom_filters %}
+
+{% block title %}Reviews - {{ venue.name }} | Horizon-Planners{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reviews-header {
+        background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+    .rating-overview {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        padding: 2rem;
+    }
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+        background-color: #e9ecef;
+    }
+    .progress-bar {
+        background-color: #ffc107;
+    }
+    .review-card {
+        border: none;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0;
+    }
+    .review-card:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 0;
+    }
+    .helpful-btn {
+        background: none;
+        border: 1px solid #dee2e6;
+        border-radius: 20px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.85rem;
+        color: #6c757d;
+        transition: all 0.2s;
+    }
+    .helpful-btn:hover, .helpful-btn.active {
+        background-color: #f8f9fa;
+        color: #198754;
+        border-color: #198754;
+    }
+    .dark-mode .rating-overview {
+        background-color: #2b3035;
+    }
+    .dark-mode .review-card {
+        border-bottom-color: #495057;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reviews-header">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'venues:venue_list' %}" class="text-white">Venues</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'venues:venue_detail' venue.slug %}" class="text-white">{{ venue.name }}</a></li>
+                <li class="breadcrumb-item active text-white" aria-current="page">Reviews</li>
+            </ol>
+        </nav>
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2>Reviews for {{ venue.name }}</h2>
+                <div class="d-flex align-items-center mt-2">
+                    <div class="text-warning me-2" style="font-size: 1.2rem;">
+                        {% for i in '12345'|make_list %}
+                            {% if forloop.counter <= avg_rating %}
+                                <i class="fas fa-star"></i>
+                            {% elif forloop.counter <= avg_rating|add:"0.5" %}
+                                <i class="fas fa-star-half-alt"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="fs-5">{{ avg_rating|floatformat:1 }}</span>
+                    <span class="ms-2 opacity-75">({{ total_reviews }} reviews)</span>
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                {% if can_review and not has_reviewed %}
+                    <a href="{% url 'reviews:create_venue_review' venue.id %}" class="btn btn-warning me-2">
+                        <i class="fas fa-star text-dark me-1"></i>Write a Review
+                    </a>
+                {% endif %}
+                <a href="{% url 'venues:venue_detail' venue.slug %}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Venue
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row">
+        <!-- Rating Overview Sidebar -->
+        <div class="col-lg-4 mb-4 mb-lg-0">
+            <div class="rating-overview sticky-top" style="top: 20px;">
+                <h5 class="mb-4">Rating Overview</h5>
+                
+                <div class="text-center mb-4">
+                    <h1 class="display-3 fw-bold mb-0">{{ avg_rating|floatformat:1 }}</h1>
+                    <div class="text-warning mb-2" style="font-size: 1.5rem;">
+                        {% for i in '12345'|make_list %}
+                            {% if forloop.counter <= avg_rating %}
+                                <i class="fas fa-star"></i>
+                            {% elif forloop.counter <= avg_rating|add:"0.5" %}
+                                <i class="fas fa-star-half-alt"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <p class="text-muted mb-0">Based on {{ total_reviews }} reviews</p>
+                </div>
+                
+                <div class="rating-bars">
+                    {% for i in '54321'|make_list %}
+                        {% with rating_data=rating_breakdown|get_item:i|default_if_none:"" %}
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="text-nowrap me-2" style="width: 45px;">
+                                {{ i }} <i class="fas fa-star text-warning small"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" 
+                                         style="width: {{ rating_data.percentage|default:0 }}%" 
+                                         aria-valuenow="{{ rating_data.percentage|default:0 }}" 
+                                         aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                            <div class="text-muted small ms-2 text-end" style="width: 35px;">
+                                {{ rating_data.percentage|default:0 }}%
+                            </div>
+                        </div>
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reviews List -->
+        <div class="col-lg-8">
+            {% if reviews %}
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        {% for review in reviews %}
+                            <div class="review-card">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; font-weight: bold;">
+                                            {{ review.user.get_full_name|default:review.user.username|make_list|first|upper }}
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">{{ review.user.get_full_name|default:review.user.username }}</h6>
+                                            <small class="text-muted">{{ review.created_at|date:"F d, Y" }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-warning">
+                                        {% for i in '12345'|make_list %}
+                                            <i class="fas fa-star{% if forloop.counter > review.rating %} text-muted{% endif %}"></i>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <h5 class="mt-3 mb-2">{{ review.title }}</h5>
+                                <p class="mb-3">{{ review.content|linebreaksbr }}</p>
+                                
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="helpful-actions">
+                                        <span class="text-muted small me-2">Was this helpful?</span>
+                                        {% if user.is_authenticated %}
+                                            <form method="post" action="{% url 'reviews:vote_review' review.pk %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="is_helpful" value="true">
+                                                <button type="submit" class="helpful-btn {% if user_votes|get_item:review.id == True %}active{% endif %}">
+                                                    <i class="fas fa-thumbs-up me-1"></i> Yes ({{ review.helpful_votes }})
+                                                </button>
+                                            </form>
+                                            <form method="post" action="{% url 'reviews:vote_review' review.pk %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="is_helpful" value="false">
+                                                <button type="submit" class="helpful-btn {% if user_votes|get_item:review.id == False %}text-danger border-danger{% endif %}">
+                                                    <i class="fas fa-thumbs-down me-1"></i> No ({{ review.total_votes|add:"-"|add:review.helpful_votes|stringformat:"d" }})
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="text-muted small"><i class="fas fa-thumbs-up me-1"></i> {{ review.helpful_votes }} people found this helpful</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if user.is_authenticated and review.user == user %}
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-link text-muted text-decoration-none" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" href="{% url 'reviews:edit_review' review.pk %}"><i class="fas fa-edit me-2"></i>Edit Review</a></li>
+                                                <li>
+                                                    <form method="post" action="{% url 'reviews:delete_review' review.pk %}" onsubmit="return confirm('Delete this review?');">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="dropdown-item text-danger"><i class="fas fa-trash-alt me-2"></i>Delete</button>
+                                                    </form>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Pagination -->
+                {% if reviews.has_other_pages %}
+                    <nav aria-label="Review pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if reviews.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?page={{ reviews.previous_page_number }}">&laquo; Previous</a></li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">&laquo; Previous</span></li>
+                            {% endif %}
+                            
+                            {% for i in reviews.paginator.page_range %}
+                                {% if reviews.number == i %}
+                                    <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                                {% else %}
+                                    <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if reviews.has_next %}
+                                <li class="page-item"><a class="page-link" href="?page={{ reviews.next_page_number }}">Next &raquo;</a></li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+                
+            {% else %}
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-star fa-4x text-muted mb-3 opacity-25"></i>
+                        <h4>No reviews yet</h4>
+                        <p class="text-muted mb-0">Be the first to review {{ venue.name }}!</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -424,9 +424,11 @@
                         <a href="{% url 'venues:book_venue' venue.slug %}" class="btn btn-primary">
                             <i class="fas fa-calendar-plus me-2"></i>Book This Venue
                         </a>
+                        {% if can_review and not already_reviewed %}
                         <a href="{% url 'reviews:create_venue_review' venue.id %}" class="btn btn-outline-primary">
                             <i class="fas fa-star me-2"></i>Write Review
                         </a>
+                        {% endif %}
                     {% else %}
                         <a href="{% url 'users:login' %}" class="btn btn-outline-primary">
                             <i class="fas fa-sign-in-alt me-2"></i>Login to Book
@@ -462,13 +464,14 @@
                                 </div>
                                 <small class="text-muted">{{ review.created_at|date:"M d" }}</small>
                             </div>
-                            <p class="small mb-0 mt-1">{{ review.comment|truncatewords:15 }}</p>
+                            {% if review.title %}<p class="small fw-bold mb-0 mt-1">{{ review.title }}</p>{% endif %}
+                            <p class="small mb-0 mt-1">{{ review.content|truncatewords:15 }}</p>
                         </div>
                     {% endfor %}
                     
                     {% if venue.reviews.count > 3 %}
                         <div class="text-center">
-                            <a href="#reviews" class="btn btn-sm btn-outline-primary">
+                            <a href="{% url 'reviews:venue_all_reviews' venue.id %}" class="btn btn-sm btn-outline-primary">
                                 View All {{ venue.reviews.count }} Reviews
                             </a>
                         </div>
