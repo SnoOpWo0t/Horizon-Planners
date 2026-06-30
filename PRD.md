@@ -47,7 +47,7 @@ Horizon Planner has four main user roles, each with distinct functionalities:
 
 ## 2. Pages in the Application
 
-EventEase is split into separate pages for clarity and modern navigation. Pages are routed via a hash-based router (or could be replaced with React Router):
+Horizon-Planner is split into separate pages for clarity and modern navigation. Pages are routed via a hash-based router (or could be replaced with React Router):
 
 ### Auth Page (Login / Signup)
 
@@ -57,8 +57,8 @@ EventEase is split into separate pages for clarity and modern navigation. Pages 
   - Sign up for new users
   - Role selection (demo purposes)
   - Redirects to Home after login
-- **Flow:** 
-  - Sign up → Home  
+- **Flow:**
+  - Sign up → Home
   - Login → Home
 
 ### Home Page (Events Listing)
@@ -158,16 +158,19 @@ EventEase is split into separate pages for clarity and modern navigation. Pages 
 ### 3.3 Special UI Flow
 
 **Event Booking:**
+
 1. Select Event → Seat Map
 2. Select Seats → Click Pay
 3. Generate Ticket → Download Ticket
 4. Optionally rate or comment
 
 **Venue Booking (Horizon Planner + Venue Manager):**
+
 1. Horizon Planner selects venue → submits booking request
 2. Venue Manager approves → Venue booked
 
 **Role Upgrade:**
+
 1. Basic User clicks "Request Role Upgrade"
 2. Admin reviews requests → Approve/Deny
 3. User gains access to Horizon Planner or Venue Manager pages
@@ -189,7 +192,6 @@ EventEase is split into separate pages for clarity and modern navigation. Pages 
 ---
 
 ## 5. Django Project Structure for horizon_planner
-
 
 5. User Django Project Structure for horizon_planner
 
@@ -296,18 +298,16 @@ horizon_planner/                  # Django project root
     ├── test_reviews.py
     └── test_payments.py
 
-
-
 ---
 
 ### App Responsibilities and Flow
 
-| **App**   | **Responsibility**                                | **Connected To / Flow**                                             |
-| --------- | ------------------------------------------------- | ------------------------------------------------------------------- |
-| users     | Authentication, registration, user roles, profile | Event booking, role upgrades, Admin approval                        |
-| events    | Event CRUD, booking, seat management              | Venue availability, ticket generation, reviews                      |
-| venues    | Venue CRUD, availability, media, approve bookings | Horizon Planner books venue → Venue Manager approves                  |
-| reviews   | Ratings, comments, moderation                     | Linked to events, moderated by Admin                                |
-| payments  | Payment processing, orders, ticket downloads      | Tied to events and users; triggers ticket generation                |
-| analytics | Dashboards, sales, platform-wide stats            | Aggregates data from events, venues, users, payments                |
-| core      | Shared models/utilities                           | Used across all apps (e.g., PDF/QR generation, email notifications) |
+| **App** | **Responsibility**                          | **Connected To / Flow**                                       |
+| ------------- | ------------------------------------------------- | ------------------------------------------------------------------- |
+| users         | Authentication, registration, user roles, profile | Event booking, role upgrades, Admin approval                        |
+| events        | Event CRUD, booking, seat management              | Venue availability, ticket generation, reviews                      |
+| venues        | Venue CRUD, availability, media, approve bookings | Horizon Planner books venue → Venue Manager approves               |
+| reviews       | Ratings, comments, moderation                     | Linked to events, moderated by Admin                                |
+| payments      | Payment processing, orders, ticket downloads      | Tied to events and users; triggers ticket generation                |
+| analytics     | Dashboards, sales, platform-wide stats            | Aggregates data from events, venues, users, payments                |
+| core          | Shared models/utilities                           | Used across all apps (e.g., PDF/QR generation, email notifications) |
