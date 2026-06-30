@@ -64,8 +64,24 @@ This project is optimized for Serverless Deployment on Vercel.
    - **Root Directory**: Leave empty (or set to `.`)
    - **Build Command**: `bash build.sh` (handles static files and database migrations)
    - **Install Command**: `pip install -r requirements.txt` (Default)
-3. Set the required **Environment Variables** (`SECRET_KEY`, `DEBUG=False`, `DATABASE_URL`).
+3. Set the required **Environment Variables**:
+   - `SECRET_KEY`
+   - `DEBUG=False`
+   - `DATABASE_URL` (Neon Postgres Connection String)
+   - `CLOUDINARY_URL` (For storing uploaded media files)
 4. Deploy! Vercel will automatically detect the `vercel.json` configuration and build your Django application.
+
+### Database Troubleshooting (Neon Postgres)
+
+If you encounter errors related to the database when deploying to Vercel, check the following:
+
+- **Error:** `attempt to write a readonly database`
+  - **Why it happens:** Vercel cannot find your `DATABASE_URL` environment variable, so Django falls back to using the local SQLite database. SQLite is read-only on Vercel's serverless environment.
+  - **The Fix:** Ensure you added `DATABASE_URL` in Vercel's Environment Variables and that it's enabled for the **Production** environment. **You must hit "Redeploy"** after adding it, as Vercel does not apply new variables to already-running deployments.
+
+- **Error:** `relation "..." does not exist`
+  - **Why it happens:** Vercel successfully connected to your Neon Postgres database, but the database is completely empty (the tables haven't been created yet).
+  - **The Fix:** You need to run `python manage.py migrate` to create the tables. You can do this by setting your local `.env` file's `DATABASE_URL` to your Neon connection string, and running `python manage.py migrate` locally.
 
 ## 📁 Project Structure
 
