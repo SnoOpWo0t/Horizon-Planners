@@ -20,38 +20,39 @@
 Follow these steps to get the project running on your local machine.
 
 ### Prerequisites
+
 - Python 3.10+
 - pip (Python package manager)
 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/yourusername/horizon-planners.git
    cd horizon-planners
    ```
-
 2. **Set up a virtual environment**
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows use: venv\Scripts\activate
    ```
-
 3. **Install dependencies**
+
    ```bash
    pip install -r requirements.txt
    ```
-
 4. **Run database migrations**
+
    ```bash
    python manage.py migrate
    ```
-
 5. **Start the development server**
+
    ```bash
    python manage.py runserver
    ```
-
 6. **Access the application**
    Open your browser and navigate to `http://127.0.0.1:8000/`.
 
@@ -75,11 +76,18 @@ This project is optimized for Serverless Deployment on Vercel.
 
 If you encounter errors related to the database when deploying to Vercel, check the following:
 
+### Use SQLite for Local Testing + Neon for Production (Recommended)
+
+This is the standard, cleanest industry workflow. You don't want your live website talking to a local file, and you don't want your local testing to slow down over the internet.
+
+* **How it works:** When you run the app on your computer (`localhost`), Django automatically connects to  **SQLite** . When you push the code to  **Vercel** , Django instantly switches to  **Neon** .
+
 - **Error:** `attempt to write a readonly database`
+
   - **Why it happens:** Vercel cannot find your `DATABASE_URL` environment variable, so Django falls back to using the local SQLite database. SQLite is read-only on Vercel's serverless environment.
   - **The Fix:** Ensure you added `DATABASE_URL` in Vercel's Environment Variables and that it's enabled for the **Production** environment. **You must hit "Redeploy"** after adding it, as Vercel does not apply new variables to already-running deployments.
-
 - **Error:** `relation "..." does not exist`
+
   - **Why it happens:** Vercel successfully connected to your Neon Postgres database, but the database is completely empty (the tables haven't been created yet).
   - **The Fix:** You need to run `python manage.py migrate` to create the tables. You can do this by setting your local `.env` file's `DATABASE_URL` to your Neon connection string, and running `python manage.py migrate` locally.
 
@@ -98,4 +106,5 @@ horizon-planners/
 ```
 
 ## 🤝 Contributing
+
 Contributions are welcome! Please feel free to submit a Pull Request or open an Issue to discuss improvements.

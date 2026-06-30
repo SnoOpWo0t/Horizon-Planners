@@ -1,5 +1,0 @@
-1. SuperUsesr -> akhi -> 1
-2. User -> Test@1234
-3.HorizonPlanner -> Test@1234
-4. venuemanager -> Test@1234
-5. vercel1 -> Test1@1234

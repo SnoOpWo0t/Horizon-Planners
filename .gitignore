@@ -1,0 +1,32 @@
+# Environments
+.env
+.env.*
+env.txt
+user.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database
+db.sqlite3
+*.sqlite3
+
+# Data dumps
+*_dump.json
+data_dump.json
+
+# Venv
+venv/
+env/
+ENV/
+.venv/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
